@@ -1,0 +1,57 @@
+# --- secrets ---
+.streamlit/secrets.toml
+.env
+*.key
+*.pem
+
+# --- dados sensíveis (CPF/PIS) ---
+uploads/
+exemplos/
+*.pdf
+*.xls
+*.xlsx
+!docs/**/*.pdf
+!docs/**/*.xlsx
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# --- testes ---
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Streamlit local ---
+.streamlit/cache/
