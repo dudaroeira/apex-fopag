@@ -123,13 +123,68 @@ def _to_jsonable(v: Any) -> Any:
     return v
 
 
+def _garantir_cadastros(parsed: dict[str, Any], schema_client) -> None:
+    """Insere cargos, obras e departamentos novos antes de gravar a folha.
+
+    Necessário porque o sistema do escritório usa códigos que podem ainda
+    não estar cadastrados (ex.: cargo novo, departamento criado depois do
+    seed inicial). Sem isso, os FOREIGN KEYs em folha_mensal estouram.
+    """
+    cod_empresa = (parsed.get("empresa") or {}).get("cod_empresa")
+    cargos_novos: dict[str, str] = {}
+    obras_novas: set[str] = set()
+    deps_novos: dict[str, str] = {}
+
+    for f in parsed.get("funcionarios", []):
+        cod = f.get("cod_cargo")
+        if cod and cod not in cargos_novos:
+            cargos_novos[cod] = f.get("nome_cargo") or cod
+        cod_obra = f.get("cod_obra")
+        if cod_obra:
+            obras_novas.add(cod_obra)
+        cod_dep = f.get("cod_departamento")
+        if cod_dep and cod_dep not in deps_novos:
+            deps_novos[cod_dep] = f.get("nome_departamento") or cod_dep
+
+    if cargos_novos:
+        rows = [
+            {"cod_cargo": c, "nome_cargo": n, "nivel": "Oficial",
+             "categoria": "Operacional", "demanda_aprendiz": False}
+            for c, n in cargos_novos.items()
+        ]
+        schema_client.table("cargos").upsert(
+            rows, on_conflict="cod_cargo", ignore_duplicates=True
+        ).execute()
+
+    if obras_novas:
+        rows = [
+            {"cod_obra": c, "nome_obra": c, "empresa_responsavel": cod_empresa,
+             "status": "Em execução"}
+            for c in obras_novas
+        ]
+        schema_client.table("obras").upsert(
+            rows, on_conflict="cod_obra", ignore_duplicates=True
+        ).execute()
+
+    if deps_novos and cod_empresa:
+        rows = [
+            {"cod_empresa": cod_empresa, "cod_departamento": c,
+             "nome_departamento": n, "tipo": "ADM"}
+            for c, n in deps_novos.items()
+        ]
+        schema_client.table("departamentos").upsert(
+            rows, on_conflict="cod_empresa,cod_departamento", ignore_duplicates=True
+        ).execute()
+
+
 def upsert_folha(parsed: dict[str, Any]) -> dict[str, int]:
     """Recebe a saída do parser e persiste no Supabase.
 
     Estratégia:
       1. Garante que a empresa e a obra do cabeçalho existem (cria se faltar).
-      2. Para cada funcionário: upsert em folha_mensal pela chave única.
-      3. Apaga eventos antigos da chave (cascade) e insere os novos.
+      2. Auto-cadastra cargos, obras, departamentos novos vindos do arquivo.
+      3. Para cada funcionário: upsert em folha_mensal pela chave única.
+      4. Apaga eventos antigos da chave (cascade) e insere os novos.
 
     Retorna {'linhas_inseridas': n, 'linhas_atualizadas': n}.
     """
@@ -173,13 +228,15 @@ def upsert_folha(parsed: dict[str, Any]) -> dict[str, int]:
             ignore_duplicates=True,
         ).execute()
 
+    # 1.5) Auto-cadastra cargos/obras/deps que vieram nos dados (não bloqueia FK)
+    _garantir_cadastros(parsed, schema)
+
     # 2) Upsert dos funcionários
     rows_folha = []
     rows_eventos = []
     chaves: list[tuple[str, str, str]] = []
     for f in parsed.get("funcionarios", []):
         cod_obra_func = f.get("cod_obra") or cod_obra_header
-        # JR6 não tem departamento (todos na obra); APEX usa departamento
         rows_folha.append(
             {
                 "mes_ref": mes_ref,
@@ -216,7 +273,7 @@ def upsert_folha(parsed: dict[str, Any]) -> dict[str, int]:
                     "mes_ref": mes_ref,
                     "cod_empresa": cod_empresa,
                     "matricula": f["matricula"],
-                    "tipo": ev.get("tipo") or "PROVENTO",  # default; refinar via rubricas
+                    "tipo": ev.get("tipo") or "PROVENTO",
                     "cod_rubrica": ev.get("cod_rubrica"),
                     "descricao": ev.get("descricao"),
                     "quantidade": ev.get("quantidade") or 0,
@@ -227,13 +284,10 @@ def upsert_folha(parsed: dict[str, Any]) -> dict[str, int]:
     if not rows_folha:
         raise ValueError("Nenhum funcionário foi extraído do arquivo.")
 
-    # Upsert em lotes
     res = schema.table("folha_mensal").upsert(
         rows_folha, on_conflict="mes_ref,cod_empresa,matricula"
     ).execute()
 
-    # Reescreve eventos: apaga os do (mes_ref,cod_empresa,matricula) e insere
-    # (mais simples que reconciliar por rubrica)
     for mes, emp, mat in chaves:
         schema.table("eventos_folha").delete().eq("mes_ref", mes).eq(
             "cod_empresa", emp
@@ -242,7 +296,6 @@ def upsert_folha(parsed: dict[str, Any]) -> dict[str, int]:
         schema.table("eventos_folha").insert(rows_eventos).execute()
 
     n = len(rows_folha)
-    # Log
     schema.table("ingestao_log").insert(
         {
             "arquivo": arquivo,
@@ -255,7 +308,6 @@ def upsert_folha(parsed: dict[str, Any]) -> dict[str, int]:
         }
     ).execute()
 
-    # Limpa cache pra refletir os novos dados nas telas
     st.cache_data.clear()
 
     return {"linhas_processadas": n, "eventos_inseridos": len(rows_eventos)}
