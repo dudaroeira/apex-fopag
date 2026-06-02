@@ -86,43 +86,67 @@ with col_left:
 
 with col_right:
     st.subheader("Carregar folha do mês")
-    st.caption("Faça upload do XLS analítico (saída do sistema do escritório).")
-    arquivo = st.file_uploader(
-        "Arquivo analítico",
+    st.caption("Faça upload de um ou vários XLS analíticos (do escritório).")
+    arquivos = st.file_uploader(
+        "Arquivos analíticos",
         type=["xls", "xlsx"],
-        accept_multiple_files=False,
+        accept_multiple_files=True,
         label_visibility="collapsed",
     )
-    if arquivo is not None:
-        with tempfile.NamedTemporaryFile(
-            delete=False, suffix=os.path.splitext(arquivo.name)[1]
-        ) as tmp:
-            tmp.write(arquivo.getbuffer())
-            tmp_path = tmp.name
-        try:
-            with st.spinner("Processando..."):
-                parsed = parse_xls(tmp_path)
-                parsed["arquivo_origem"] = arquivo.name
+    if arquivos:
+        parseados = []
+        erros = []
+        with st.spinner(f"Processando {len(arquivos)} arquivo(s)..."):
+            for arquivo in arquivos:
+                with tempfile.NamedTemporaryFile(
+                    delete=False, suffix=os.path.splitext(arquivo.name)[1]
+                ) as tmp:
+                    tmp.write(arquivo.getbuffer())
+                    tmp_path = tmp.name
+                try:
+                    parsed = parse_xls(tmp_path)
+                    parsed["arquivo_origem"] = arquivo.name
+                    parseados.append(parsed)
+                except Exception as exc:
+                    erros.append((arquivo.name, str(exc)))
+                finally:
+                    try:
+                        os.unlink(tmp_path)
+                    except OSError:
+                        pass
 
+        for parsed in parseados:
             st.success(
-                f"Detectado: **{parsed['empresa'].get('razao_social', '?')}** · "
+                f"📄 **{parsed.get('arquivo_origem')}** → "
+                f"{parsed['empresa'].get('razao_social', '?')[:30]} · "
                 f"mês **{parsed.get('mes_ref', '?')}** · "
-                f"**{len(parsed['funcionarios'])}** funcionários."
+                f"**{len(parsed['funcionarios'])}** funcionários"
             )
-            if st.button("Gravar no banco", type="primary"):
-                with st.spinner("Gravando no Supabase..."):
-                    res = db.upsert_folha(parsed)
-                st.success(
-                    f"Inseridos {res['linhas_processadas']} funcionários e "
-                    f"{res['eventos_inseridos']} eventos. Atualize a página para ver."
-                )
-        except Exception as exc:
-            st.error(f"Erro processando arquivo: {exc}")
-        finally:
-            try:
-                os.unlink(tmp_path)
-            except OSError:
-                pass
+        for nome, msg in erros:
+            st.error(f"❌ {nome}: {msg}")
+
+        if parseados and st.button(
+            f"Gravar {len(parseados)} arquivo(s) no banco", type="primary"
+        ):
+            ok = 0
+            falha = 0
+            with st.spinner("Gravando no Supabase..."):
+                for parsed in parseados:
+                    try:
+                        res = db.upsert_folha(parsed)
+                        st.write(
+                            f"✅ {parsed['arquivo_origem']} — "
+                            f"{res['linhas_processadas']} funcionários, "
+                            f"{res['eventos_inseridos']} eventos"
+                        )
+                        ok += 1
+                    except Exception as exc:
+                        st.error(f"❌ {parsed['arquivo_origem']}: {exc}")
+                        falha += 1
+            if ok:
+                st.success(f"{ok} arquivo(s) gravado(s). Atualize a página para ver.")
+            if falha:
+                st.warning(f"{falha} arquivo(s) com erro — veja acima.")
 
 
 # ---------- Rodape ----------
