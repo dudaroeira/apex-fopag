@@ -19,7 +19,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--navy:#1F3864;--blue:#2E75B6;--green:#1D9E75;--red:#E24B4A;--amber:#BA7517;
---bg:#F4F6F9;--card:#FFFFFF;--line:#E3E8F0;--txt:#1B2433;--mut:#6B7686;--mut2:#9AA4B2;}
+--bg:#F4F6F9;--card:#FFFFFF;--line:#E3E8F0;--txt:#1B2433;--ink:#1B2433;--mut:#6B7686;--mut2:#9AA4B2;
+--ok:#1D9E75;--r:#E24B4A;--y:#BA7517;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt);}
 #app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);display:flex;flex-direction:column;position:relative;}
@@ -174,6 +175,7 @@ canvas{max-width:100%;}
   <p class="hint">Selecione um ou vários XLS analíticos (.xls/.xlsx) do sistema do escritório.</p>
   <div class="drop" id="drop" onclick="document.getElementById('xlsfile').click()"><div id="dropTxt">Toque para escolher arquivos XLS<br><span style="font-size:11px;color:var(--mut2)">Múltiplos arquivos suportados</span></div></div>
   <input type="file" id="xlsfile" accept=".xlsx,.xls" multiple style="display:none" onchange="onUpload(event)">
+  <input type="file" id="alocfile" accept=".xlsx,.xls" style="display:none" onchange="onUploadAloc(event)">
   <div id="uploadStatus"></div>
   <div class="btns"><button class="btn-s" onclick="closeUpload()">Fechar</button></div>
 </div></div>
@@ -182,10 +184,25 @@ canvas{max-width:100%;}
   <h2>Mais</h2>
   <div class="msect">CONTA</div>
   <div id="menuWho" class="card" style="margin-bottom:14px;"></div>
+  <div class="msect">PREFERENCIAS</div>
+  <label class="bigbtn" style="cursor:pointer;margin-bottom:14px;">
+    <span class="ic">&#128218;</span>
+    <span style="flex:1;"><b>Excluir inativos dos relatorios</b><small>Ignora Doente, Licenciado, Em afastamento, Demitido</small></span>
+    <input id="toggleInativos" type="checkbox" onchange="setExcluirInativos(this.checked)" style="transform:scale(1.4);margin-left:10px;">
+  </label>
+  <div id="mgrUploadsBlock" class="hidden">
+    <div class="msect">UPLOADS DO MES</div>
+    <div id="uploadsStatus" class="card" style="margin-bottom:14px;font-size:13px;line-height:1.7;"></div>
+    <button class="bigbtn" onclick="closeMenu();openUploadKind('folha')"><span class="ic">&#128196;</span><span><b>Folha analitica</b><small>XLS do sistema do escritorio (1 ou varios meses)</small></span></button>
+    <button class="bigbtn" onclick="closeMenu();openUploadKind('fit')"><span class="ic">&#127881;</span><span><b>FIT</b><small>Planilha mensal de premiacao variavel</small></span></button>
+    <button class="bigbtn" onclick="closeMenu();openUploadKind('alocacao')"><span class="ic">&#128203;</span><span><b>Distribuicao de funcionarios</b><small>Matriz % de alocacao APEX por obra</small></span></button>
+  </div>
+  <div class="msect">RELATORIOS</div>
   <button class="bigbtn" onclick="exportarPDFPainel()"><span class="ic">&#128196;</span><span><b>PDF do painel</b><small>KPIs e tabelas do escopo atual</small></span></button>
-  <button class="bigbtn" onclick="exportarPDFEquipe()"><span class="ic">&#128101;</span><span><b>PDF da equipe</b><small>Relação completa filtrada pelo escopo</small></span></button>
-  <button class="bigbtn" onclick="doLogout()"><span class="ic">&#8617;</span><span><b>Sair</b><small>Encerra a sessão neste dispositivo</small></span></button>
-  <div class="note">Apex Engenharia · v0.2</div>
+  <button class="bigbtn" onclick="exportarPDFEquipe()"><span class="ic">&#128101;</span><span><b>PDF da equipe</b><small>Relacao completa filtrada pelo escopo</small></span></button>
+  <div class="msect">SESSAO</div>
+  <button class="bigbtn" onclick="doLogout()"><span class="ic">&#8617;</span><span><b>Sair</b><small>Encerra a sessao neste dispositivo</small></span></button>
+  <div class="note">Apex Engenharia &middot; v0.7</div>
 </div></div>
 
 <script>
@@ -204,10 +221,14 @@ let MESES = [];        // ['2026-05', '2026-04', ...]
 let MES = null;        // mês atualmente selecionado
 let ENTIDADE = 'APEX'; // 'APEX' | 'JR6' | cod_obra ('204OB', 'JAX28', 'OBRA99', 'REPARO')
 let WIN = 6;           // janela na tela Evolução (em meses, ou 999 para tudo)
-let DATA = { folha: [], fit: [], empresas: [], obras: [], cargos: [], deps: [], rub: [], param: [] };
+let DATA = { folha: [], fit: [], alocacao: [], empresas: [], obras: [], cargos: [], deps: [], rub: [], param: [] };
 let FIT_BY_MES = {}; // cache fit por mes_ref (pagamento)
+let ALOC_BY_MES = {}; // cache alocacao por mes_ref (mes de trabalho)
 let HIST = {};         // cache: mes -> rows
 let CHARTS = {};
+let EXCLUIR_INATIVOS = (localStorage.getItem('apex_excl_inat') === '1');
+// Mapa: codigo na planilha de alocacao -> cod_obra interno
+const COL_TO_OBRA = { 'JAX28':'JAX28', 'JR6':'204', '99':'099', '099':'099', '1PO':'REPARO', 'REPARO':'REPARO', 'ADM':'1AD', '1AD':'1AD' };
 
 // ===== HELPERS =====
 const $ = s => document.querySelector(s);
@@ -264,13 +285,15 @@ async function loadData(){
     DATA.param = par.data || [];
     const mes = await sb.from('folha_mensal').select('mes_ref');
     const mesFit = await sb.from('fit').select('mes_ref');
+    const mesAloc = await sb.from('alocacao').select('mes_ref');
     const allMeses = new Set();
     for (const r of (mes.data||[])) allMeses.add(r.mes_ref);
     for (const r of (mesFit.data||[])) allMeses.add(r.mes_ref);
+    for (const r of (mesAloc.data||[])) allMeses.add(r.mes_ref);
     MESES = [...allMeses].sort().reverse();
     if (!MES) MES = MESES[0] || null;
     fillMesSelect();
-    if (MES) { await loadMes(MES); await loadFitMes(MES); }
+    if (MES) { await loadMes(MES); await loadFitMes(MES); await loadAlocMes(MES); }
   } catch (e) { console.error(e); }
 }
 async function loadMes(m){
@@ -291,17 +314,32 @@ async function loadFitMes(m){
   FIT_BY_MES[m] = r.data || [];
   DATA.fit = FIT_BY_MES[m];
 }
+async function loadAlocMes(m){
+  if (ALOC_BY_MES[m]){ DATA.alocacao = ALOC_BY_MES[m]; return; }
+  try {
+    const r = await sb.from('alocacao').select('*').eq('mes_ref', m);
+    ALOC_BY_MES[m] = r.data || [];
+  } catch(e){ ALOC_BY_MES[m] = []; }
+  DATA.alocacao = ALOC_BY_MES[m];
+}
+function missing3Uploads(m){
+  const out = [];
+  if (!HIST[m] || !HIST[m].length) out.push('Folha analitica');
+  if (!FIT_BY_MES[m] || !FIT_BY_MES[m].length) out.push('FIT');
+  if (!ALOC_BY_MES[m] || !ALOC_BY_MES[m].length) out.push('Distribuicao de funcionarios');
+  return out;
+}
 function fillMesSelect(){
   const sel = $('#mesSel');
   sel.innerHTML = MESES.map(m => `<option value="${m}" ${m===MES?'selected':''}>${mesLabel(m)}</option>`).join('');
   $('#prev').disabled = MESES.indexOf(MES) >= MESES.length - 1;
   $('#next').disabled = MESES.indexOf(MES) <= 0;
 }
-async function selectMes(m){ MES = m; await loadMes(m); await loadFitMes(m); fillMesSelect(); render(); }
+async function selectMes(m){ MES = m; await loadMes(m); await loadFitMes(m); await loadAlocMes(m); fillMesSelect(); render(); }
 async function step(d){
   const i = MESES.indexOf(MES); const j = i - d;
   if (j < 0 || j >= MESES.length) return;
-  MES = MESES[j]; await loadMes(MES); await loadFitMes(MES); fillMesSelect(); render();
+  MES = MESES[j]; await loadMes(MES); await loadFitMes(MES); await loadAlocMes(MES); fillMesSelect(); render();
 }
 
 // ===== ENTIDADES =====
@@ -312,9 +350,10 @@ function listEntidades(){
   // APEX e JR6 sempre primeiro
   if (DATA.empresas.find(e=>e.cod_empresa==='1')) list.push({ id:'APEX', label:'APEX', tipo:'empresa' });
   if (DATA.empresas.find(e=>e.cod_empresa==='52')) list.push({ id:'JR6', label:'JR6', tipo:'empresa' });
-  // Demais obras (exceto 1AD que é a administração APEX)
+  // Demais obras (exceto 1AD admin, e 204/204OB que sao JR6)
   for (const o of DATA.obras){
     if (o.cod_obra === '1AD') continue;
+    if (o.cod_obra === '204' || o.cod_obra === '204OB') continue; // JR6 ja cobre
     list.push({ id: o.cod_obra, label: o.apelido || o.nome_obra || o.cod_obra, tipo:'obra' });
   }
   return list;
@@ -326,14 +365,54 @@ function drawEntPills(){
   ).join('');
 }
 function setEnt(id){ ENTIDADE = id; drawEntPills(); render(); }
+// Constrói folha 'alocada': para funcionarios APEX (cod_empresa=1) na planilha
+// de alocacao, gera multiplas linhas (uma por obra) com peso = percentual/100.
+// Para os demais, peso=1 e cod_obra_efetivo = cod_obra original.
+function buildAllocatedFolha(){
+  const folha = DATA.folha || [];
+  const aloc  = DATA.alocacao || [];
+  const byName = new Map();
+  for (const a of aloc){
+    const k = a.nome_canonico || normNome(a.nome||'');
+    if (!byName.has(k)) byName.set(k, []);
+    byName.get(k).push(a);
+  }
+  const out = [];
+  for (const r of folha){
+    if (String(r.cod_empresa) === '1'){
+      const k = normNome(r.nome||'');
+      const allocs = byName.get(k);
+      if (allocs && allocs.length){
+        for (const a of allocs){
+          out.push(Object.assign({}, r, {
+            cod_obra_efetivo: a.cod_obra,
+            peso: (+a.percentual || 0) / 100,
+            viaAlocacao: true,
+          }));
+        }
+        continue;
+      }
+    }
+    out.push(Object.assign({}, r, {
+      cod_obra_efetivo: r.cod_obra, peso: 1.0, viaAlocacao: false,
+    }));
+  }
+  return out;
+}
 function filterByEnt(rows, ent){
   if (!ent) ent = ENTIDADE;
-  // Empresa: APEX = cod_empresa 1 (toda a folha APEX, incluindo dep 28 supervisão).
-  //          JR6 = cod_empresa 52 (toda a folha JR6).
-  if (ent === 'APEX') return rows.filter(r => r.cod_empresa === '1');
-  if (ent === 'JR6')  return rows.filter(r => r.cod_empresa === '52');
-  // Obra: filtra por cod_obra direto, em qualquer empresa.
-  return rows.filter(r => r.cod_obra === ent);
+  let result;
+  if (ent === 'APEX'){
+    result = (rows||DATA.folha).filter(r => r.cod_empresa === '1').map(r => Object.assign({}, r, { peso: 1.0 }));
+  } else if (ent === 'JR6'){
+    const alloc = buildAllocatedFolha();
+    result = alloc.filter(r => r.cod_empresa === '52' || r.cod_obra_efetivo === '204' || r.cod_obra_efetivo === '204OB');
+  } else {
+    const alloc = buildAllocatedFolha();
+    result = alloc.filter(r => r.cod_obra_efetivo === ent);
+  }
+  if (EXCLUIR_INATIVOS) result = result.filter(r => !INATIVOS.has(r.situacao));
+  return result;
 }
 function entLabel(){
   const ents = listEntidades();
@@ -342,23 +421,26 @@ function entLabel(){
 
 // ===== KPIs =====
 const INATIVOS = new Set(['Doente','Licenciado','Em','Demitido']);
+const W = r => (r && r.peso != null) ? +r.peso : 1;
 function custoEncargos(rows){
-  // APEX 1AD (administração) usa encargo admin 30%; obras (incluindo JR6) usam 33%.
   let s = 0;
   for (const r of rows){
-    const isAdm = r.cod_obra === '1AD';
+    const codO = r.cod_obra_efetivo || r.cod_obra;
+    const isAdm = codO === '1AD';
     const p = +r.proventos_total || 0;
-    s += p * (1 + (isAdm ? 0.30 : 0.33));
+    s += p * (1 + (isAdm ? 0.30 : 0.33)) * W(r);
   }
   return s;
 }
 function kpisOf(rows){
-  const head = rows.length;
-  const prov = rows.reduce((a,r)=>a+(+r.proventos_total||0), 0);
+  const headW = rows.reduce((a,r)=>a+W(r), 0);
+  const head = Math.round(headW);
+  const prov = rows.reduce((a,r)=>a+(+r.proventos_total||0)*W(r), 0);
   const enc = custoEncargos(rows);
-  const inat = rows.filter(r => INATIVOS.has(r.situacao)).length;
-  const med = head ? prov / head : 0;
-  const sumSalario = rows.reduce((a,r)=>a+(+r.salario_base||0), 0);
+  const inatW = rows.filter(r => INATIVOS.has(r.situacao)).reduce((a,r)=>a+W(r), 0);
+  const inat = Math.round(inatW);
+  const med = headW ? prov / headW : 0;
+  const sumSalario = rows.reduce((a,r)=>a+(+r.salario_base||0)*W(r), 0);
   const hoje = new Date();
   let anos = [], idades = [];
   for (const r of rows){
@@ -367,7 +449,7 @@ function kpisOf(rows){
   }
   const tempo = anos.length ? anos.reduce((a,b)=>a+b,0)/anos.length : 0;
   const idade = idades.length ? idades.reduce((a,b)=>a+b,0)/idades.length : 0;
-  return { head, prov, enc, inat, pctInat: head?inat/head:0, med, tempo, idade, sumSalario };
+  return { head, prov, enc, inat, pctInat: headW?inatW/headW:0, med, tempo, idade, sumSalario };
 }
 function nivelDe(rows){
   const out = {};
@@ -428,6 +510,23 @@ function go(t){ TAB = t; render(); window.scrollTo(0,0); }
 
 // ===== PAINEL =====
 async function renderPainel(){
+  if (ENTIDADE === 'APEX'){
+    const faltam = missing3Uploads(MES);
+    if (faltam.length){
+      $('#main').innerHTML = `
+        <div class="card" style="text-align:center;padding:32px 20px;">
+          <div style="font-size:42px;line-height:1;margin-bottom:14px;">&#128203;</div>
+          <h2 style="margin:0 0 8px 0;">Dados APEX incompletos</h2>
+          <p style="color:var(--mut);margin:0 0 18px 0;">Para gerar KPIs da APEX em <b>${mesLabelLong(MES)}</b>, faltam:</p>
+          <ul style="text-align:left;display:inline-block;color:var(--ink);line-height:1.8;">
+            ${faltam.map(f => '<li>' + f + '</li>').join('')}
+          </ul>
+          <p style="color:var(--mut2);margin:14px 0 0 0;font-size:13px;">Use o botao + (manager) para carregar os arquivos do mes.</p>
+        </div>
+      `;
+      return;
+    }
+  }
   const rows = filterByEnt(DATA.folha);
   const k = kpisOf(rows);
   const ratio = ratioOS(rows);
@@ -739,15 +838,16 @@ function matchFolha(fitName, folhaRows){
 }
 
 // ===== FIT (Ficha Interna de Tarefa) =====
+const FIT_ENT_TO_CODOBRA = {
+  'JR6': ['204'], '204': ['204'], '204OB': ['204'],
+  'JAX28': ['JAX28'], '099': ['099'], 'OBRA99': ['099'],
+  'REPARO': ['REPARO', '1PO'],
+};
 function filterFitByEnt(rows, ent){
   if (!ent) ent = ENTIDADE;
-  if (ent === 'APEX') return rows; // FIT é tudo APEX
-  if (ent === 'JR6') return []; // JR6 não tem FIT
-  // Obra: filtra por cod_obra (ou cod_obra_real?). Usar cod_obra (lotação contratual).
-  // Mapeamento: cod_obra na planilha pode ser '204', '099', '1PO', etc.
-  const obraMap = { '204OB':'204', 'JAX28':'1PO', 'OBRA99':'099', 'REPARO':'REPARO' };
-  const codFit = obraMap[ent] || ent;
-  return rows.filter(r => (r.cod_obra||'') === codFit);
+  if (ent === 'APEX') return rows; // FIT inteiro e APEX
+  const codsAceitos = FIT_ENT_TO_CODOBRA[ent] || [ent];
+  return rows.filter(r => codsAceitos.includes(String(r.cod_obra||'').trim()));
 }
 
 function kpisFit(rows){
@@ -888,6 +988,134 @@ function parseFitGrid(grid, sheetName, fileName){
   return { mes_ref: mesPag, mes_referencia: mesReferencia, funcionarios, arquivo_origem: fileName };
 }
 function parseFitNum(v){ if (v==null || v==='') return null; if (typeof v==='number') return v; const s=String(v).replace(/\./g,'').replace(',','.').replace(/[^\d.\-]/g,''); const n=parseFloat(s); return isNaN(n)?null:n; }
+
+// ===== ALOCACAO (matriz % por obra) =====
+function parseAlocGrid(grid, sheetName, fileName){
+  // sheet "MAR26" -> mes_ref = 2026-03
+  const m = String(sheetName||'').toUpperCase().match(/([A-Z]+)[-_/ ]*(\d{2,4})/);
+  if (!m) throw new Error("Nao consegui detectar mes na aba (esperado 'MAR26' ou 'MAR-2026').");
+  const monthName = String(m[1]).replace(String.fromCharCode(199),'C').slice(0,3);
+  const monthNum = FIT_MES_ABREV[monthName];
+  if (!monthNum) throw new Error("Mes desconhecido: " + monthName);
+  let year = parseInt(m[2], 10);
+  if (year < 100) year = 2000 + year;
+  const mes_ref = year + '-' + String(monthNum).padStart(2,'0');
+
+  let headerRow = -1;
+  for (let r=0;r<Math.min(grid.length,12);r++){
+    const row = grid[r]||[];
+    const hasNomes = row.some(c => c!=null && String(c).toUpperCase().trim() === 'NOMES');
+    const hasObra  = row.some(c => c!=null && ['JAX28','JR6','99','099','1PO','REPARO'].includes(String(c).toUpperCase().trim()));
+    if (hasNomes && hasObra) { headerRow = r; break; }
+  }
+  if (headerRow < 0) throw new Error("Cabecalho nao encontrado (esperado NOMES + JAX28/JR6/99/1PO).");
+
+  const headers = (grid[headerRow]||[]).map(x => x==null ? '' : String(x).toUpperCase().trim());
+  const iCC     = headers.findIndex(h => h === 'CC' || h === 'CENTRO DE CUSTO');
+  const iNome   = headers.findIndex(h => h === 'NOMES' || h === 'NOME');
+  const iFuncao = headers.findIndex(h => h.includes('FUNCAO') || h.includes('FUN' + String.fromCharCode(199) + 'AO'));
+  const obraCols = [];
+  for (let c=0; c<headers.length; c++){
+    if (COL_TO_OBRA[headers[c]]) obraCols.push({ col: c, cod_obra: COL_TO_OBRA[headers[c]] });
+  }
+  if (!obraCols.length) throw new Error("Nenhuma coluna de obra reconhecida (JAX28, JR6, 99, 1PO).");
+
+  const linhas = [];
+  for (let r = headerRow+1; r < grid.length; r++){
+    const row = grid[r] || [];
+    const nome = iNome>=0 ? String(row[iNome]||'').trim() : '';
+    if (!nome) continue;
+    const cc = iCC>=0 ? String(row[iCC]||'').trim() : null;
+    const funcao = iFuncao>=0 ? String(row[iFuncao]||'').trim() || null : null;
+    for (const oc of obraCols){
+      const raw = row[oc.col];
+      if (raw == null || raw === '') continue;
+      let v = +raw;
+      if (isNaN(v) || v <= 0) continue;
+      const pct = v <= 1.0001 ? v * 100 : v;
+      linhas.push({
+        mes_ref, nome,
+        nome_canonico: normNome(nome),
+        cc_origem: cc, funcao,
+        cod_obra: oc.cod_obra,
+        percentual: Math.round(pct * 100) / 100,
+      });
+    }
+  }
+  return { mes_ref, linhas, arquivo_origem: fileName };
+}
+
+async function onUploadAloc(ev){
+  if (!IS_MANAGER) return;
+  const files = ev.target.files;
+  if (!files || !files.length) return;
+  const f = files[0];
+  const status = $('#uploadStatus');
+  status.innerHTML = '<i>Lendo planilha...</i>';
+  try {
+    const buf = await f.arrayBuffer();
+    const wb = XLSX.read(buf, { type:'array', cellDates:false });
+    const filenameMatch = f.name.toUpperCase().match(/([A-Z]+)\s*[-_/ ]?\s*(\d{2,4})/);
+    let sheetName = wb.SheetNames[wb.SheetNames.length-1];
+    if (filenameMatch){
+      const fnMonth = filenameMatch[1].replace(String.fromCharCode(199),'C').slice(0,3);
+      const fnYearRaw = filenameMatch[2];
+      const fnYear = fnYearRaw.length === 2 ? '20' + fnYearRaw : fnYearRaw;
+      const hit = wb.SheetNames.find(sn => {
+        const u = sn.toUpperCase().replace(String.fromCharCode(199),'C').replace(/[-_/ ]/g,'');
+        return u.includes(fnMonth) && (u.includes(fnYear) || u.includes(fnYearRaw));
+      });
+      if (hit) sheetName = hit;
+    }
+    const sheet = wb.Sheets[sheetName];
+    const grid = XLSX.utils.sheet_to_json(sheet, { header:1, raw:true, defval:null });
+    const parsed = parseAlocGrid(grid, sheetName, f.name);
+
+    const somaPorNome = {};
+    for (const l of parsed.linhas){
+      somaPorNome[l.nome_canonico] = (somaPorNome[l.nome_canonico]||0) + l.percentual;
+    }
+    const fora = Object.entries(somaPorNome).filter(([k,v]) => Math.abs(v - 100) > 1.0);
+    const aviso = fora.length ? '<div style="color:var(--y);margin-top:8px;font-size:12px;">Aviso: ' + fora.length + ' funcionario(s) com soma de % diferente de 100. Serao gravados.</div>' : '';
+
+    const folhaMes = await fetchMes(parsed.mes_ref);
+    let casados = 0;
+    for (const l of parsed.linhas){
+      const ff = folhaMes.find(r => r.cod_empresa === '1' && normNome(r.nome) === l.nome_canonico);
+      if (ff){ l.matricula = ff.matricula; casados++; }
+    }
+
+    window.__alocParsed = parsed;
+    status.innerHTML = 'Aba <b>' + sheetName + '</b> -&gt; mes ref. <b>' + parsed.mes_ref + '</b><br>' +
+      parsed.linhas.length + ' linha(s) de alocacao &middot; ' + Object.keys(somaPorNome).length + ' funcionario(s)<br>' +
+      casados + ' casado(s) com a folha do mes ' + aviso +
+      '<br><button class="btn-p" style="margin-top:10px;padding:10px 18px;border:none;border-radius:10px;font-weight:600;cursor:pointer" onclick="_saveAloc()">Gravar no banco</button>';
+  } catch(e){
+    status.innerHTML = '<div style="color:var(--r)">Erro: ' + (e.message||e) + '</div>';
+  }
+}
+async function _saveAloc(){
+  const parsed = window.__alocParsed; if (!parsed) return;
+  const status = $('#uploadStatus');
+  status.innerHTML = '<i>Gravando...</i>';
+  try {
+    await sb.from('alocacao').delete().eq('mes_ref', parsed.mes_ref);
+    const batch = 200;
+    for (let i=0; i<parsed.linhas.length; i+=batch){
+      const slice = parsed.linhas.slice(i, i+batch).map(l => Object.assign({}, l, { arquivo_origem: parsed.arquivo_origem }));
+      const { error } = await sb.from('alocacao').insert(slice);
+      if (error) throw error;
+    }
+    delete ALOC_BY_MES[parsed.mes_ref];
+    await loadAlocMes(parsed.mes_ref);
+    if (!MESES.includes(parsed.mes_ref)){ MESES.push(parsed.mes_ref); MESES.sort().reverse(); }
+    status.innerHTML = '<div style="color:var(--ok)">OK. ' + parsed.linhas.length + ' linha(s) no mes ' + parsed.mes_ref + '.</div>';
+    if (MES === parsed.mes_ref) render();
+  } catch(e){
+    status.innerHTML = '<div style="color:var(--r)">Erro ao gravar: ' + (e.message||e) + '</div>';
+  }
+}
+
 
 async function onUploadFit(ev){
   if (!IS_MANAGER) return;
@@ -1035,9 +1263,45 @@ function exportarPDFFit(){
 }
 
 // ===== MENU / MODAIS =====
-function openMenu(){ $('#menu').classList.add('on'); }
-function openUpload(){ if(!IS_MANAGER) return; $('#upload').classList.add('on'); $('#uploadStatus').innerHTML=''; }
+let UPLOAD_KIND = 'folha';
+function openMenu(){
+  $('#menu').classList.add('on');
+  const t = $('#toggleInativos'); if (t) t.checked = EXCLUIR_INATIVOS;
+  const blk = $('#mgrUploadsBlock');
+  if (blk){ if (IS_MANAGER) blk.classList.remove('hidden'); else blk.classList.add('hidden'); }
+  const st = $('#uploadsStatus'); if (st && IS_MANAGER) st.innerHTML = renderUploadsStatus(MES);
+}
+function closeMenu(){ $('#menu').classList.remove('on'); }
+function renderUploadsStatus(m){
+  if (!m) return '<i>Sem mes selecionado.</i>';
+  const folha = (HIST[m]||[]).length;
+  const fit = (FIT_BY_MES[m]||[]).length;
+  const aloc = (ALOC_BY_MES[m]||[]).length;
+  const dot = ok => ok ? '<span style="color:var(--ok)">' + String.fromCharCode(9679) + '</span>' : '<span style="color:var(--mut2)">' + String.fromCharCode(9675) + '</span>';
+  return '<b>' + mesLabelLong(m) + '</b><br>' +
+    dot(folha>0) + ' Folha analitica - ' + folha + ' registros<br>' +
+    dot(fit>0) + ' FIT - ' + fit + ' registros<br>' +
+    dot(aloc>0) + ' Distribuicao de funcionarios - ' + aloc + ' registros';
+}
+function openUpload(){ if(!IS_MANAGER) return; UPLOAD_KIND='folha'; $('#upload').classList.add('on'); $('#uploadStatus').innerHTML=''; }
+function openUploadKind(kind){
+  if(!IS_MANAGER) return;
+  UPLOAD_KIND = kind || 'folha';
+  $('#upload').classList.add('on');
+  $('#uploadStatus').innerHTML='';
+  // Dispara picker automaticamente
+  setTimeout(() => {
+    const inputId = { folha:'xlsfile', fit:'fitfile', alocacao:'alocfile' }[UPLOAD_KIND] || 'xlsfile';
+    const inp = document.getElementById(inputId);
+    if (inp){ inp.value=''; inp.click(); }
+  }, 100);
+}
 function closeUpload(){ $('#upload').classList.remove('on'); }
+function setExcluirInativos(v){
+  EXCLUIR_INATIVOS = !!v;
+  localStorage.setItem('apex_excl_inat', v ? '1' : '0');
+  render();
+}
 document.addEventListener('click', e => { if (e.target.classList.contains('modal')) e.target.classList.remove('on'); });
 
 // ===== UPLOAD XLS (SheetJS) =====
