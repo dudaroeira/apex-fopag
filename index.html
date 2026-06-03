@@ -202,7 +202,7 @@ let USER = null;
 let IS_MANAGER = false;
 let MESES = [];        // ['2026-05', '2026-04', ...]
 let MES = null;        // mês atualmente selecionado
-let ENTIDADE = 'APEX'; // 'APEX' | cod_obra ('204OB', 'JAX28', 'OBRA99', 'REPARO')
+let ENTIDADE = 'APEX'; // 'APEX' | 'JR6' | cod_obra ('204OB', 'JAX28', 'OBRA99', 'REPARO')
 let WIN = 6;           // janela na tela Evolução (em meses, ou 999 para tudo)
 let DATA = { folha: [], empresas: [], obras: [], cargos: [], deps: [], rub: [], param: [] };
 let HIST = {};         // cache: mes -> rows
@@ -295,11 +295,16 @@ async function step(d){
 
 // ===== ENTIDADES =====
 function listEntidades(){
-  // APEX (Administração - cod_obra 1AD) + obras
-  const list = [{ id: 'APEX', label: 'APEX', tipo: 'apex' }];
+  // Empresas (APEX, JR6) representam suas próprias folhas inteiras.
+  // Obras filtram por cod_obra direto, sem migração entre empresas.
+  const list = [];
+  // APEX e JR6 sempre primeiro
+  if (DATA.empresas.find(e=>e.cod_empresa==='1')) list.push({ id:'APEX', label:'APEX', tipo:'empresa' });
+  if (DATA.empresas.find(e=>e.cod_empresa==='52')) list.push({ id:'JR6', label:'JR6', tipo:'empresa' });
+  // Demais obras (exceto 1AD que é a administração APEX)
   for (const o of DATA.obras){
-    if (o.cod_obra === '1AD') continue; // 1AD é a entidade APEX
-    list.push({ id: o.cod_obra, label: o.apelido || o.nome_obra || o.cod_obra, tipo: 'obra' });
+    if (o.cod_obra === '1AD') continue;
+    list.push({ id: o.cod_obra, label: o.apelido || o.nome_obra || o.cod_obra, tipo:'obra' });
   }
   return list;
 }
@@ -312,20 +317,12 @@ function drawEntPills(){
 function setEnt(id){ ENTIDADE = id; drawEntPills(); render(); }
 function filterByEnt(rows, ent){
   if (!ent) ent = ENTIDADE;
-  if (ent === 'APEX'){
-    // Pessoas alocadas na administração APEX: cod_obra = 1AD
-    // OU em departamentos da APEX que não estão vinculados a outra obra
-    return rows.filter(r => {
-      if (r.cod_empresa !== '1') return false; // só APEX
-      if (r.cod_obra === '1AD') return true;
-      // Se tem cod_departamento, ver se NÃO está vinculado a obra externa
-      const dep = DATA.deps.find(d => d.cod_empresa === r.cod_empresa && d.cod_departamento === r.cod_departamento);
-      return !dep || !dep.cod_obra_vinculada || dep.cod_obra_vinculada === '1AD';
-    });
-  }
-  // Obra: junta cod_obra direto + departamentos vinculados a essa obra
-  const depsVinc = new Set(DATA.deps.filter(d => d.cod_obra_vinculada === ent).map(d => d.cod_empresa+'|'+d.cod_departamento));
-  return rows.filter(r => r.cod_obra === ent || depsVinc.has(r.cod_empresa+'|'+r.cod_departamento));
+  // Empresa: APEX = cod_empresa 1 (toda a folha APEX, incluindo dep 28 supervisão).
+  //          JR6 = cod_empresa 52 (toda a folha JR6).
+  if (ent === 'APEX') return rows.filter(r => r.cod_empresa === '1');
+  if (ent === 'JR6')  return rows.filter(r => r.cod_empresa === '52');
+  // Obra: filtra por cod_obra direto, em qualquer empresa.
+  return rows.filter(r => r.cod_obra === ent);
 }
 function entLabel(){
   const ents = listEntidades();
@@ -335,6 +332,7 @@ function entLabel(){
 // ===== KPIs =====
 const INATIVOS = new Set(['Doente','Licenciado','Em','Demitido']);
 function custoEncargos(rows){
+  // APEX 1AD (administração) usa encargo admin 30%; obras (incluindo JR6) usam 33%.
   let s = 0;
   for (const r of rows){
     const isAdm = r.cod_obra === '1AD';
