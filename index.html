@@ -33,16 +33,22 @@ header{background:var(--navy);color:#fff;padding:14px 16px 12px;position:sticky;
 .navdate .arrow:disabled{opacity:.35;}
 .navdate select{flex:1;background:rgba(255,255,255,.14);color:#fff;border:none;border-radius:9px;padding:8px 10px;font-size:14px;font-weight:600;text-align:center;text-align-last:center;}
 .navdate select option{color:#000;}
+.entpills{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 0;background:var(--bg);scrollbar-width:none;}
+.entpills::-webkit-scrollbar{display:none;}
+.entpills span{font-size:12px;padding:7px 14px;border-radius:18px;border:1px solid var(--line);color:var(--mut);background:var(--card);cursor:pointer;white-space:nowrap;font-weight:500;}
+.entpills span.on{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:600;}
 main{flex:1;padding:16px 16px 90px;}
-h1{font-size:18px;font-weight:600;margin-bottom:14px;}
+h1{font-size:18px;font-weight:600;margin-bottom:4px;}
+.subtitle{color:var(--mut);font-size:13px;margin-bottom:14px;}
 .kpi{background:var(--card);border-radius:14px;padding:16px;margin-bottom:10px;border:1px solid var(--line);}
 .kpi .lbl{font-size:13px;color:var(--mut);}
 .kpi .big{font-size:26px;font-weight:600;margin-top:3px;}
 .kpi .big.sm{font-size:20px;}
 .kpi .delta{font-size:12px;margin-top:4px;display:flex;align-items:center;gap:4px;}
+.kpi .ext{font-size:11px;color:var(--mut);margin-top:3px;}
 .up{color:var(--green);}.down{color:var(--red);}.flat{color:var(--mut);}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}.row2 .kpi{margin-bottom:0;}
-.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}.row3 .kpi{margin-bottom:0;padding:12px;}.row3 .kpi .big{font-size:20px;}.row3 .kpi .lbl{font-size:11px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}.row3 .kpi{margin-bottom:0;padding:12px;}.row3 .kpi .big{font-size:18px;}.row3 .kpi .lbl{font-size:11px;}
 .sect{font-size:13px;color:var(--mut);margin:18px 0 8px;font-weight:600;}
 .card{background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--line);margin-bottom:10px;}
 .toggle{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;}
@@ -53,6 +59,7 @@ h1{font-size:18px;font-weight:600;margin-bottom:14px;}
 .alert{border-radius:12px;padding:12px 14px;margin-bottom:9px;display:flex;gap:10px;align-items:flex-start;}
 .alert.r{background:#FBE9E9;border:1px solid #F5C7C6;color:#7E1F1E;}
 .alert.y{background:#FDF3DD;border:1px solid #F1DBA1;color:#7B5A14;}
+.alert.g{background:#E2F2EA;border:1px solid #BFE0CB;color:#185F3F;}
 .alert .ic{font-size:18px;flex:none;}
 .alert .t{font-size:13px;font-weight:600;}
 .alert .m{font-size:12px;margin-top:2px;line-height:1.45;}
@@ -67,6 +74,7 @@ h1{font-size:18px;font-weight:600;margin-bottom:14px;}
 .bar-lbl{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;color:var(--mut);}
 .bar-lbl b{font-weight:600;color:var(--txt);}
 .bar{height:11px;border-radius:6px;margin-bottom:13px;min-width:6px;}
+.semaforo{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;}
 nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--card);border-top:1px solid var(--line);display:flex;height:64px;z-index:20;}
 nav button{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--mut2);font-size:11px;cursor:pointer;padding:0;}
 nav button.on{color:var(--blue);}nav button svg{width:22px;height:22px;}
@@ -88,11 +96,10 @@ canvas{max-width:100%;}
 .msect{font-size:12px;color:var(--mut);font-weight:600;margin:18px 0 8px;}
 .badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;margin-left:6px;}
 .badge.mgr{background:#E1F0E9;color:#0F6E56;}.badge.view{background:#E6EEF8;color:#185FA5;}
-.mrow{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px;}
-.mrow:last-child{border-bottom:none;}
-.mrow .act{display:flex;gap:8px;}
-.mrow .act button{border:none;background:#EDF0F5;color:var(--txt);width:34px;height:34px;border-radius:9px;font-size:15px;cursor:pointer;}
-.mrow .act button.del{background:#FBE9E9;color:var(--red);}
+.quartil{display:flex;align-items:flex-end;gap:4px;height:46px;margin-top:8px;}
+.quartil .q{flex:1;background:#E6EEF8;border-radius:4px 4px 0 0;position:relative;display:flex;justify-content:center;align-items:flex-start;padding-top:2px;}
+.quartil .q b{font-size:10px;color:var(--blue);font-weight:600;}
+.quartil .q.m{background:var(--blue);} .quartil .q.m b{color:#fff;}
 #login{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px;}
 #login .box{width:100%;max-width:360px;}
 #login .logo{text-align:center;margin-bottom:22px;}
@@ -103,23 +110,25 @@ canvas{max-width:100%;}
 #login button{width:100%;background:var(--blue);color:#fff;border:none;border-radius:11px;padding:13px;font-size:15px;font-weight:600;margin-top:18px;cursor:pointer;}
 #login .err{color:var(--red);font-size:13px;text-align:center;margin-top:12px;min-height:18px;}
 .hidden{display:none!important;}
+.action-row{display:flex;justify-content:flex-end;margin-bottom:10px;}
+.action-row button{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:13px;color:var(--blue);font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
 @media (min-width:860px){
   body{background:var(--bg);}
   #app{max-width:1040px;min-height:auto;margin:22px auto;border:1px solid var(--line);border-radius:16px;background:var(--card);display:flex;flex-direction:column;}
   header{order:1;border-radius:16px 16px 0 0;}
-  nav{order:2;position:static;transform:none;left:auto;width:100%;max-width:none;height:auto;border-top:none;border-bottom:1px solid var(--line);justify-content:center;gap:10px;padding:8px;}
+  .entpills{order:2;background:var(--card);padding:14px 30px 0;}
+  nav{order:3;position:static;transform:none;left:auto;width:100%;max-width:none;height:auto;border-top:none;border-bottom:1px solid var(--line);justify-content:center;gap:10px;padding:8px;}
   nav button{flex:0 0 auto;flex-direction:row;gap:8px;padding:10px 20px;font-size:14px;border-radius:10px;}
   nav button.on{background:#E6EEF8;}
   nav button svg{width:18px;height:18px;}
-  main{order:3;padding:26px 30px 34px;}
-  .fab{order:4;position:fixed;left:auto;right:30px;bottom:30px;transform:none;width:56px;height:56px;}
-  h1{font-size:22px;margin-bottom:18px;}
+  main{order:4;padding:26px 30px 34px;}
+  .fab{order:5;position:fixed;left:auto;right:30px;bottom:30px;transform:none;width:56px;height:56px;}
+  h1{font-size:22px;}
   .kpi{padding:20px;}
   .kpi .big{font-size:30px;}
   .row2{grid-template-columns:1fr 1fr;gap:16px;}
   .row3{grid-template-columns:1fr 1fr 1fr;gap:14px;}
   .card{padding:18px 20px;}
-  .sect{font-size:14px;margin:24px 0 10px;}
   .modal{align-items:center;}
   .sheet{max-width:560px;border-radius:18px;max-height:86vh;}
 }
@@ -140,7 +149,7 @@ canvas{max-width:100%;}
 <div id="app" class="hidden">
   <header>
     <div class="topbar">
-      <div><div class="brand">GRUPO APEX · RECURSOS HUMANOS</div><div class="who" id="who"></div></div>
+      <div><div class="brand">APEX ENGENHARIA · RECURSOS HUMANOS</div><div class="who" id="who"></div></div>
       <button class="menu" onclick="openMenu()" aria-label="Menu">&#9776;</button>
     </div>
     <div class="navdate">
@@ -149,19 +158,20 @@ canvas{max-width:100%;}
       <button class="arrow" id="next" onclick="step(1)" aria-label="Próximo">&#9654;</button>
     </div>
   </header>
+  <div class="entpills" id="entPills"></div>
   <main id="main"></main>
   <button class="fab hidden" id="fab" onclick="openUpload()" aria-label="Carregar folha">+</button>
   <nav id="nav">
     <button data-t="painel" class="on" onclick="go('painel')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Painel</button>
-    <button data-t="comparativo" onclick="go('comparativo')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Comparativo</button>
-    <button data-t="obra" onclick="go('obra')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/></svg>Obras</button>
+    <button data-t="evolucao" onclick="go('evolucao')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Evolução</button>
     <button data-t="equipe" onclick="go('equipe')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2 21c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 21c0-3 2-4.5 4.5-4.5"/></svg>Equipe</button>
+    <button data-t="mais" onclick="go('mais')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>Mais</button>
   </nav>
 </div>
 
 <div class="modal" id="upload"><div class="sheet">
   <h2>Carregar folha do mês</h2>
-  <p class="hint">Selecione um ou vários XLS analíticos (.xls/.xlsx) do sistema do escritório. Os arquivos são processados aqui no navegador e enviados ao Supabase.</p>
+  <p class="hint">Selecione um ou vários XLS analíticos (.xls/.xlsx) do sistema do escritório.</p>
   <div class="drop" id="drop" onclick="document.getElementById('xlsfile').click()"><div id="dropTxt">Toque para escolher arquivos XLS<br><span style="font-size:11px;color:var(--mut2)">Múltiplos arquivos suportados</span></div></div>
   <input type="file" id="xlsfile" accept=".xlsx,.xls" multiple style="display:none" onchange="onUpload(event)">
   <div id="uploadStatus"></div>
@@ -169,13 +179,13 @@ canvas{max-width:100%;}
 </div></div>
 
 <div class="modal" id="menu"><div class="sheet">
-  <h2>Configurações</h2>
-  <p class="hint">Backup, exportações e gestão da conta.</p>
+  <h2>Mais</h2>
   <div class="msect">CONTA</div>
   <div id="menuWho" class="card" style="margin-bottom:14px;"></div>
-  <button class="bigbtn" onclick="exportarPDF()"><span class="ic">&#128196;</span><span><b>Exportar PDF do painel</b><small>Gera um PDF com os KPIs e tabelas do mês atual</small></span></button>
+  <button class="bigbtn" onclick="exportarPDFPainel()"><span class="ic">&#128196;</span><span><b>PDF do painel</b><small>KPIs e tabelas do escopo atual</small></span></button>
+  <button class="bigbtn" onclick="exportarPDFEquipe()"><span class="ic">&#128101;</span><span><b>PDF da equipe</b><small>Relação completa filtrada pelo escopo</small></span></button>
   <button class="bigbtn" onclick="doLogout()"><span class="ic">&#8617;</span><span><b>Sair</b><small>Encerra a sessão neste dispositivo</small></span></button>
-  <div class="note">Apex Engenharia · v0.1</div>
+  <div class="note">Apex Engenharia · v0.2</div>
 </div></div>
 
 <script>
@@ -190,33 +200,26 @@ const sb = supabase.createClient(SB_URL, SB_ANON, { db: { schema: 'apex_fopag' }
 let TAB = 'painel';
 let USER = null;
 let IS_MANAGER = false;
-let MESES = [];
-let MES = null;
-let DATA = { folha: [], empresas: [], obras: [], cargos: [], deps: [], param: [] };
+let MESES = [];        // ['2026-05', '2026-04', ...]
+let MES = null;        // mês atualmente selecionado
+let ENTIDADE = 'APEX'; // 'APEX' | cod_obra ('204OB', 'JAX28', 'OBRA99', 'REPARO')
+let WIN = 6;           // janela na tela Evolução (em meses, ou 999 para tudo)
+let DATA = { folha: [], empresas: [], obras: [], cargos: [], deps: [], rub: [], param: [] };
+let HIST = {};         // cache: mes -> rows
 let CHARTS = {};
 
 // ===== HELPERS =====
 const $ = s => document.querySelector(s);
 const fmt = {
   brl: v => 'R$ ' + Math.round(v).toLocaleString('pt-BR'),
-  brlk: v => 'R$ ' + (Math.round(v/1000)).toLocaleString('pt-BR') + 'k',
+  brlk: v => 'R$ ' + Math.round(v/1000).toLocaleString('pt-BR') + 'k',
   pct: v => (v*100).toFixed(1) + '%',
   pp: v => (v*100>=0?'+':'') + (v*100).toFixed(1) + ' p.p.',
   num: v => Math.round(v).toLocaleString('pt-BR'),
-  delta: (d, fmttype) => {
-    const sign = d >= 0 ? '+' : '−';
-    if (fmttype === 'brl') return sign + 'R$ ' + Math.abs(Math.round(d)).toLocaleString('pt-BR');
-    if (fmttype === 'pct') return (d*100>=0?'+':'') + (d*100).toFixed(1) + 'pp';
-    return sign + Math.abs(Math.round(d)).toLocaleString('pt-BR');
-  }
 };
 function destroyCharts(){ for (const k in CHARTS){ try{ CHARTS[k].destroy(); } catch(e){} } CHARTS={}; }
-function mesLabel(m){ // 2026-05 -> "Maio/2026"
-  if(!m) return '—';
-  const [y, mm] = m.split('-');
-  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  return meses[parseInt(mm,10)-1] + '/' + y;
-}
+function mesLabel(m){ if(!m) return '—'; const [y,mm]=m.split('-'); const M=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']; return M[parseInt(mm,10)-1] + '/' + y; }
+function mesLabelLong(m){ const [y,mm]=m.split('-'); const M=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']; return M[parseInt(mm,10)-1] + ' de ' + y; }
 
 // ===== AUTH =====
 async function doLogin(){
@@ -239,6 +242,7 @@ async function onSession(sess){
   $('#menuWho').innerHTML = '<b>' + USER.email + '</b><br><small style="color:var(--mut)">' + (IS_MANAGER?'Acesso de manager (pode gravar)':'Acesso de leitura') + '</small>';
   if (IS_MANAGER) $('#fab').classList.remove('hidden'); else $('#fab').classList.add('hidden');
   await loadData();
+  drawEntPills();
   render();
 }
 
@@ -257,7 +261,6 @@ async function loadData(){
     DATA.cargos = car.data || [];
     DATA.deps = dep.data || [];
     DATA.param = par.data || [];
-    // lista de meses únicos
     const mes = await sb.from('folha_mensal').select('mes_ref');
     MESES = [...new Set((mes.data||[]).map(r=>r.mes_ref))].sort().reverse();
     if (!MES) MES = MESES[0] || null;
@@ -266,8 +269,16 @@ async function loadData(){
   } catch (e) { console.error(e); }
 }
 async function loadMes(m){
+  if (HIST[m]) { DATA.folha = HIST[m]; return; }
   const r = await sb.from('folha_mensal').select('*').eq('mes_ref', m);
-  DATA.folha = r.data || [];
+  HIST[m] = r.data || [];
+  DATA.folha = HIST[m];
+}
+async function fetchMes(m){
+  if (HIST[m]) return HIST[m];
+  const r = await sb.from('folha_mensal').select('*').eq('mes_ref', m);
+  HIST[m] = r.data || [];
+  return HIST[m];
 }
 function fillMesSelect(){
   const sel = $('#mesSel');
@@ -275,15 +286,50 @@ function fillMesSelect(){
   $('#prev').disabled = MESES.indexOf(MES) >= MESES.length - 1;
   $('#next').disabled = MESES.indexOf(MES) <= 0;
 }
-async function selectMes(m){ MES = m; await loadMes(m); render(); }
+async function selectMes(m){ MES = m; await loadMes(m); fillMesSelect(); render(); }
 async function step(d){
-  const i = MESES.indexOf(MES);
-  const j = i - d;
+  const i = MESES.indexOf(MES); const j = i - d;
   if (j < 0 || j >= MESES.length) return;
-  MES = MESES[j];
-  fillMesSelect();
-  await loadMes(MES);
-  render();
+  MES = MESES[j]; await loadMes(MES); fillMesSelect(); render();
+}
+
+// ===== ENTIDADES =====
+function listEntidades(){
+  // APEX (Administração - cod_obra 1AD) + obras
+  const list = [{ id: 'APEX', label: 'APEX', tipo: 'apex' }];
+  for (const o of DATA.obras){
+    if (o.cod_obra === '1AD') continue; // 1AD é a entidade APEX
+    list.push({ id: o.cod_obra, label: o.apelido || o.nome_obra || o.cod_obra, tipo: 'obra' });
+  }
+  return list;
+}
+function drawEntPills(){
+  const ents = listEntidades();
+  $('#entPills').innerHTML = ents.map(e =>
+    `<span class="${e.id===ENTIDADE?'on':''}" onclick="setEnt('${e.id}')">${e.label}</span>`
+  ).join('');
+}
+function setEnt(id){ ENTIDADE = id; drawEntPills(); render(); }
+function filterByEnt(rows, ent){
+  if (!ent) ent = ENTIDADE;
+  if (ent === 'APEX'){
+    // Pessoas alocadas na administração APEX: cod_obra = 1AD
+    // OU em departamentos da APEX que não estão vinculados a outra obra
+    return rows.filter(r => {
+      if (r.cod_empresa !== '1') return false; // só APEX
+      if (r.cod_obra === '1AD') return true;
+      // Se tem cod_departamento, ver se NÃO está vinculado a obra externa
+      const dep = DATA.deps.find(d => d.cod_empresa === r.cod_empresa && d.cod_departamento === r.cod_departamento);
+      return !dep || !dep.cod_obra_vinculada || dep.cod_obra_vinculada === '1AD';
+    });
+  }
+  // Obra: junta cod_obra direto + departamentos vinculados a essa obra
+  const depsVinc = new Set(DATA.deps.filter(d => d.cod_obra_vinculada === ent).map(d => d.cod_empresa+'|'+d.cod_departamento));
+  return rows.filter(r => r.cod_obra === ent || depsVinc.has(r.cod_empresa+'|'+r.cod_departamento));
+}
+function entLabel(){
+  const ents = listEntidades();
+  return (ents.find(e => e.id === ENTIDADE) || { label: ENTIDADE }).label;
 }
 
 // ===== KPIs =====
@@ -291,118 +337,202 @@ const INATIVOS = new Set(['Doente','Licenciado','Em','Demitido']);
 function custoEncargos(rows){
   let s = 0;
   for (const r of rows){
-    const obra = String(r.cod_obra||'');
-    const isAdm = obra === '1AD';
+    const isAdm = r.cod_obra === '1AD';
     const p = +r.proventos_total || 0;
     s += p * (1 + (isAdm ? 0.30 : 0.33));
   }
   return s;
 }
-function kpisDoMes(rows){
+function kpisOf(rows){
   const head = rows.length;
   const prov = rows.reduce((a,r)=>a+(+r.proventos_total||0), 0);
   const enc = custoEncargos(rows);
   const inat = rows.filter(r => INATIVOS.has(r.situacao)).length;
   const med = head ? prov / head : 0;
+  const sumSalario = rows.reduce((a,r)=>a+(+r.salario_base||0), 0);
   const hoje = new Date();
-  const tempo = (() => {
-    let arr=[];
-    for (const r of rows){
-      if (!r.dt_admissao) continue;
-      const d = new Date(r.dt_admissao);
-      if (isNaN(d)) continue;
-      arr.push((hoje - d) / (365.25*86400000));
-    }
-    return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
-  })();
-  return { head, prov, enc, inat, pctInat: head?inat/head:0, med, tempo };
+  let anos = [], idades = [];
+  for (const r of rows){
+    if (r.dt_admissao){ const d=new Date(r.dt_admissao); if(!isNaN(d)) anos.push((hoje-d)/(365.25*86400000)); }
+    if (r.nascimento){ const d=new Date(r.nascimento); if(!isNaN(d)) idades.push((hoje-d)/(365.25*86400000)); }
+  }
+  const tempo = anos.length ? anos.reduce((a,b)=>a+b,0)/anos.length : 0;
+  const idade = idades.length ? idades.reduce((a,b)=>a+b,0)/idades.length : 0;
+  return { head, prov, enc, inat, pctInat: head?inat/head:0, med, tempo, idade, sumSalario };
+}
+function nivelDe(rows){
+  const out = {};
+  for (const r of rows){
+    const c = DATA.cargos.find(x=>x.cod_cargo===r.cod_cargo);
+    const n = (c||{}).nivel || '(sem nível)';
+    out[n] = (out[n]||0)+1;
+  }
+  return out;
+}
+function ratioOS(rows){
+  const n = nivelDe(rows);
+  const of = (n['Oficial']||0) + (n['Especializado']||0);
+  const se = (n['Servente']||0) + (n['Apoio']||0);
+  return se ? of/se : 0;
+}
+function pctAprendizes(rows){
+  const n = nivelDe(rows);
+  const apr = n['Aprendiz']||0;
+  // Base lei do aprendiz: funções que demandam aprendiz
+  let baseLei = 0;
+  for (const r of rows){
+    const c = DATA.cargos.find(x=>x.cod_cargo===r.cod_cargo);
+    if (c && c.demanda_aprendiz) baseLei++;
+  }
+  if (!baseLei) baseLei = rows.length;
+  return baseLei ? apr/baseLei : 0;
+}
+function quartisSalario(rows){
+  const vals = rows.map(r=>+r.salario_base||0).filter(v=>v>0).sort((a,b)=>a-b);
+  if (!vals.length) return null;
+  const q = p => vals[Math.min(vals.length-1, Math.floor(vals.length*p))];
+  return { min: vals[0], q25: q(0.25), med: q(0.5), q75: q(0.75), max: vals[vals.length-1] };
 }
 function turnover(curr, prev){
-  if (!curr.length) return 0;
+  if (!curr.length) return { adm:0, dem:0, pct:0 };
   const setC = new Set(curr.map(r=>r.cod_empresa+'|'+r.matricula));
   const setP = new Set(prev.map(r=>r.cod_empresa+'|'+r.matricula));
-  let adm=0, dem=0;
-  for (const k of setC) if (!setP.has(k)) adm++;
-  for (const k of setP) if (!setC.has(k)) dem++;
+  let a=0,d=0;
+  for (const k of setC) if (!setP.has(k)) a++;
+  for (const k of setP) if (!setC.has(k)) d++;
   const hm = (curr.length + prev.length) / 2;
-  return hm ? (adm+dem)/2/hm : 0;
-}
-async function fetchMes(m){
-  const r = await sb.from('folha_mensal').select('*').eq('mes_ref', m);
-  return r.data || [];
+  return { adm:a, dem:d, pct: hm ? (a+d)/2/hm : 0 };
 }
 
 // ===== RENDER =====
 function render(){
   destroyCharts();
-  // marca aba ativa
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.t === TAB));
-  if (!MES) { $('#main').innerHTML = '<div class="empty">Nenhum mês carregado.<br>' + (IS_MANAGER?'Toque em <b>+</b> pra carregar a primeira folha.':'Solicite ao manager.') + '</div>'; return; }
+  if (!MES) { $('#main').innerHTML = '<div class="empty">Nenhum mês carregado.<br>' + (IS_MANAGER?'Toque em <b>+</b> para carregar a primeira folha.':'Solicite ao manager.') + '</div>'; return; }
   if (TAB === 'painel') renderPainel();
-  else if (TAB === 'comparativo') renderComparativo();
-  else if (TAB === 'obra') renderObra();
+  else if (TAB === 'evolucao') renderEvolucao();
   else if (TAB === 'equipe') renderEquipe();
+  else if (TAB === 'mais') renderMais();
 }
 function go(t){ TAB = t; render(); window.scrollTo(0,0); }
 
 // ===== PAINEL =====
-function renderPainel(){
-  const k = kpisDoMes(DATA.folha);
+async function renderPainel(){
+  const rows = filterByEnt(DATA.folha);
+  const k = kpisOf(rows);
+  const ratio = ratioOS(rows);
+  const apr = pctAprendizes(rows);
+  // mês anterior (1m) pra mostrar mini-delta
+  const prevM = MESES[MESES.indexOf(MES)+1];
+  const prevRows = prevM ? filterByEnt(await fetchMes(prevM)) : [];
+  const kp = kpisOf(prevRows);
+  const tn = prevM ? turnover(rows, prevRows) : { adm:0, dem:0, pct:0 };
+  const aprMin = (DATA.param.find(p=>p.parametro==='meta_aprendiz_min_pct')||{valor:0.05}).valor;
+  const aprMax = (DATA.param.find(p=>p.parametro==='meta_aprendiz_max_pct')||{valor:0.15}).valor;
+  const pctInatMax = (DATA.param.find(p=>p.parametro==='meta_inativos_max_pct')||{valor:0.15}).valor;
+
+  // semaforo Lei do Aprendiz
+  const aprColor = apr < aprMin ? 'r' : (apr > aprMax ? 'y' : 'g');
+  const inatColor = k.pctInat > pctInatMax ? 'r' : 'g';
+
+  // alertas
+  const alerts = [];
+  if (k.pctInat > pctInatMax) alerts.push({n:'r', t:'Inativos acima da meta', m: `${fmt.pct(k.pctInat)} (meta ≤ ${fmt.pct(pctInatMax)}).`});
+  if (apr < aprMin) alerts.push({n:'r', t:'Lei do Aprendiz — abaixo do piso', m: `${fmt.pct(apr)} (piso ${fmt.pct(aprMin)}).`});
+  else if (apr > aprMax) alerts.push({n:'y', t:'Lei do Aprendiz — acima do teto', m: `${fmt.pct(apr)} (teto ${fmt.pct(aprMax)}).`});
+
+  // mini delta
+  const dHead = prevRows.length ? k.head - kp.head : 0;
+  const dProv = prevRows.length ? k.prov - kp.prov : 0;
+
+  // distribuição salarial
+  const q = quartisSalario(rows);
+
+  // composição por nível
+  const niveis = nivelDe(rows);
+  const ordemN = ['Aprendiz','Servente','Meio Oficial','Oficial','Especializado','Apoio','Encarregado','Contramestre','Admin','Diretoria','(sem nível)'];
+  const nivOrd = ordemN.filter(n=>niveis[n]).map(n=>[n,niveis[n]]);
+  const nivMax = Math.max(...nivOrd.map(x=>x[1]), 1);
+
+  // custos detalhados
+  const benef = rows.reduce((a,r)=>{
+    // Sem rubricas detalhadas, estimo VT+VR como 7% da folha bruta (proxy)
+    return a + (+r.proventos_total||0) * 0.07;
+  }, 0);
+  const pct13Ferias = 0.13 + 0.04; // 13o + ferias proporcional simples
+  const provisao = k.prov * pct13Ferias;
+
   const html = `
-    <h1>Painel · ${mesLabel(MES)}</h1>
+    <h1>${entLabel()}</h1>
+    <div class="subtitle">${mesLabelLong(MES)}</div>
+
+    ${alerts.length ? alerts.map(a=>`<div class="alert ${a.n}"><span class="ic">${a.n==='r'?'🔴':(a.n==='y'?'🟡':'🟢')}</span><div><div class="t">${a.t}</div><div class="m">${a.m}</div></div></div>`).join('') : ''}
+
+    <div class="sect">PESSOAS E CUSTO</div>
     <div class="row3">
-      <div class="kpi"><div class="lbl">Pessoas</div><div class="big">${fmt.num(k.head)}</div></div>
-      <div class="kpi"><div class="lbl">Folha bruta</div><div class="big">${fmt.brlk(k.prov)}</div></div>
-      <div class="kpi"><div class="lbl">C/ encargos</div><div class="big">${fmt.brlk(k.enc)}</div></div>
+      <div class="kpi"><div class="lbl">Pessoas</div><div class="big">${fmt.num(k.head)}</div>${prevRows.length?`<div class="delta ${dHead>0?'up':(dHead<0?'down':'flat')}">${dHead>0?'▲':(dHead<0?'▼':'•')} ${dHead>0?'+':''}${dHead} vs anterior</div>`:''}</div>
+      <div class="kpi"><div class="lbl">Folha bruta</div><div class="big">${fmt.brlk(k.prov)}</div>${prevRows.length?`<div class="delta ${dProv>0?'down':(dProv<0?'up':'flat')}">${dProv>0?'▲':(dProv<0?'▼':'•')} ${fmt.pp(prevRows.length&&kp.prov?(dProv/kp.prov):0)}</div>`:''}</div>
+      <div class="kpi"><div class="lbl">C/ encargos</div><div class="big">${fmt.brlk(k.enc)}</div><div class="ext">obra +33% · adm +30%</div></div>
     </div>
+
     <div class="row3">
-      <div class="kpi"><div class="lbl">% Inativos</div><div class="big" style="color:${k.pctInat>0.15?'var(--red)':'var(--txt)'}">${fmt.pct(k.pctInat)}</div></div>
-      <div class="kpi"><div class="lbl">Custo médio</div><div class="big">${fmt.brl(k.med)}</div></div>
-      <div class="kpi"><div class="lbl">Tempo casa</div><div class="big">${k.tempo.toFixed(1)} <span style="font-size:14px;color:var(--mut)">anos</span></div></div>
+      <div class="kpi"><div class="lbl"><span class="semaforo" style="background:var(--${inatColor==='r'?'red':'green'})"></span>% Inativos</div><div class="big">${fmt.pct(k.pctInat)}</div><div class="ext">${k.inat} pessoas</div></div>
+      <div class="kpi"><div class="lbl">Custo médio</div><div class="big">${fmt.brl(k.med)}</div><div class="ext">por pessoa/mês</div></div>
+      <div class="kpi"><div class="lbl">Turnover</div><div class="big">${fmt.pct(tn.pct)}</div><div class="ext">+${tn.adm} / −${tn.dem} no mês</div></div>
     </div>
-    <div class="sect">POR EMPRESA</div>
-    <div class="card">${renderPorEmpresa(DATA.folha)}</div>
+
+    <div class="sect">PERFIL DA EQUIPE</div>
+    <div class="row3">
+      <div class="kpi"><div class="lbl">Tempo médio casa</div><div class="big">${k.tempo.toFixed(1)} <span style="font-size:13px;color:var(--mut)">anos</span></div></div>
+      <div class="kpi"><div class="lbl">Idade média</div><div class="big">${k.idade.toFixed(0)} <span style="font-size:13px;color:var(--mut)">anos</span></div></div>
+      <div class="kpi"><div class="lbl">Ratio O:S</div><div class="big">${ratio.toFixed(2)}</div><div class="ext">oficial : servente</div></div>
+    </div>
+
+    <div class="row3">
+      <div class="kpi"><div class="lbl"><span class="semaforo" style="background:var(--${aprColor==='r'?'red':(aprColor==='y'?'amber':'green')})"></span>Lei Aprendiz</div><div class="big">${fmt.pct(apr)}</div><div class="ext">${fmt.pct(aprMin)} a ${fmt.pct(aprMax)}</div></div>
+      <div class="kpi"><div class="lbl">Provisão 13/férias</div><div class="big">${fmt.brlk(provisao)}</div><div class="ext">17% da folha</div></div>
+      <div class="kpi"><div class="lbl">Benefícios est.</div><div class="big">${fmt.brlk(benef)}</div><div class="ext">VT + refeição (≈7%)</div></div>
+    </div>
+
+    ${q ? `
+    <div class="sect">DISTRIBUIÇÃO SALARIAL</div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:6px"><span>Mín</span><span>Q1</span><span>Mediana</span><span>Q3</span><span>Máx</span></div>
+      <div class="quartil">
+        <div class="q" style="height:${20+(q.min/q.max)*70}%"><b>${fmt.brl(q.min)}</b></div>
+        <div class="q" style="height:${20+(q.q25/q.max)*70}%"><b>${fmt.brl(q.q25)}</b></div>
+        <div class="q m" style="height:${20+(q.med/q.max)*70}%"><b>${fmt.brl(q.med)}</b></div>
+        <div class="q" style="height:${20+(q.q75/q.max)*70}%"><b>${fmt.brl(q.q75)}</b></div>
+        <div class="q" style="height:100%"><b>${fmt.brl(q.max)}</b></div>
+      </div>
+    </div>` : ''}
+
+    <div class="sect">PIRÂMIDE HIERÁRQUICA</div>
+    <div class="card">${nivOrd.length ? nivOrd.map(([n,c]) => `
+      <div style="margin-bottom:8px"><div class="bar-lbl"><b>${n}</b><span>${c}</span></div>
+      <div class="bar" style="background:linear-gradient(90deg,var(--blue) 0%,var(--blue) ${(c/nivMax*100).toFixed(0)}%,#EDF0F5 ${(c/nivMax*100).toFixed(0)}%);"></div></div>
+    `).join('') : '<div class="empty">Sem dados</div>'}</div>
+
     <div class="sect">TOP CARGOS POR CUSTO</div>
-    <div class="card">${renderTopCargos(DATA.folha, 8)}</div>
+    <div class="card">${renderTopCargos(rows, 8)}</div>
+
     <div class="sect">COMPOSIÇÃO</div>
     <div class="card"><canvas id="sitChart" height="200"></canvas></div>
   `;
   $('#main').innerHTML = html;
-  drawSituacaoChart();
-}
-function renderPorEmpresa(rows){
-  const map = {};
-  for (const r of rows){
-    if (!map[r.cod_empresa]) map[r.cod_empresa] = { hc:0, prov:0 };
-    map[r.cod_empresa].hc++;
-    map[r.cod_empresa].prov += (+r.proventos_total||0);
-  }
-  const arr = Object.entries(map).map(([cod,v]) => ({
-    cod, hc: v.hc, prov: v.prov,
-    nome: (DATA.empresas.find(e=>e.cod_empresa===cod)||{}).nome_curto || cod
-  })).sort((a,b)=>b.prov-a.prov);
-  if (!arr.length) return '<div class="empty">Sem dados</div>';
-  const max = Math.max(...arr.map(x=>x.prov));
-  return arr.map(e => `
-    <div style="margin-bottom:10px">
-      <div class="bar-lbl"><b>${e.nome}</b><span>${e.hc} pessoas · ${fmt.brlk(e.prov)}</span></div>
-      <div class="bar" style="background:linear-gradient(90deg,var(--blue) 0%,var(--blue) ${(e.prov/max*100).toFixed(0)}%,#EDF0F5 ${(e.prov/max*100).toFixed(0)}%);"></div>
-    </div>`).join('');
+  drawSituacaoChart(rows);
 }
 function renderTopCargos(rows, n){
   const map = {};
   for (const r of rows){
-    const c = r.cod_cargo;
-    if (!c) continue;
-    if (!map[c]) map[c] = { qtd:0, prov:0 };
-    map[c].qtd++;
-    map[c].prov += (+r.proventos_total||0);
+    if (!r.cod_cargo) continue;
+    if (!map[r.cod_cargo]) map[r.cod_cargo] = { qtd:0, prov:0 };
+    map[r.cod_cargo].qtd++;
+    map[r.cod_cargo].prov += (+r.proventos_total||0);
   }
   const arr = Object.entries(map).map(([c,v]) => ({
-    cod: c,
     nome: ((DATA.cargos.find(x=>x.cod_cargo===c)||{}).nome_cargo) || ('cargo '+c),
-    qtd: v.qtd,
-    prov: v.prov,
+    qtd: v.qtd, prov: v.prov,
   })).sort((a,b)=>b.prov-a.prov).slice(0, n);
   if (!arr.length) return '<div class="empty">Sem dados</div>';
   const max = arr[0].prov;
@@ -412,9 +542,9 @@ function renderTopCargos(rows, n){
       <div class="bar" style="background:linear-gradient(90deg,var(--green) 0%,var(--green) ${(c.prov/max*100).toFixed(0)}%,#EDF0F5 ${(c.prov/max*100).toFixed(0)}%);"></div>
     </div>`).join('');
 }
-function drawSituacaoChart(){
+function drawSituacaoChart(rows){
   const map = {};
-  for (const r of DATA.folha){ map[r.situacao] = (map[r.situacao]||0)+1; }
+  for (const r of rows){ map[r.situacao] = (map[r.situacao]||0)+1; }
   const labels = Object.keys(map);
   const values = Object.values(map);
   const colors = labels.map(l => l==='Ativo' ? '#1D9E75' : (l==='Doente'?'#E24B4A':(l==='Licenciado'?'#BA7517':'#9AA4B2')));
@@ -427,203 +557,150 @@ function drawSituacaoChart(){
   });
 }
 
-// ===== COMPARATIVO =====
-let CMP_PREV = null;
-async function renderComparativo(){
-  // Default: mes anterior
-  if (!CMP_PREV) CMP_PREV = MESES[MESES.indexOf(MES)+1] || MESES[1] || null;
-  $('#main').innerHTML = '<h1>Comparativo</h1><div class="empty">Carregando…</div>';
-  if (!CMP_PREV || CMP_PREV === MES){
-    $('#main').innerHTML = '<h1>Comparativo</h1><div class="empty">Selecione 2 meses diferentes (mês atual ≠ mês de comparação).</div>';
-    return;
-  }
-  const prev = await fetchMes(CMP_PREV);
-  const curr = DATA.folha;
-  const kc = kpisDoMes(curr), kp = kpisDoMes(prev);
-  const tn = turnover(curr, prev);
-  const pctInatMax = (DATA.param.find(p=>p.parametro==='meta_inativos_max_pct')||{valor:0.15}).valor;
-  const turnMax = (DATA.param.find(p=>p.parametro==='meta_turnover_max_pct')||{valor:0.05}).valor;
-
-  const metrics = [
-    {l:'Pessoas', a:kc.head, b:kp.head, fmt:'num', dir:'up'},
-    {l:'Folha bruta', a:kc.prov, b:kp.prov, fmt:'brl', dir:'flat'},
-    {l:'Custo c/ encargos', a:kc.enc, b:kp.enc, fmt:'brl', dir:'flat'},
-    {l:'% Inativos', a:kc.pctInat, b:kp.pctInat, fmt:'pct', dir:'down'},
-    {l:'Custo médio', a:kc.med, b:kp.med, fmt:'brl', dir:'flat'},
-    {l:'Turnover', a:tn, b:0, fmt:'pct', dir:'down'},
+// ===== EVOLUÇÃO =====
+async function renderEvolucao(){
+  const janelas = [
+    { v: 1, lbl: '1M' }, { v: 3, lbl: '3M' }, { v: 6, lbl: '6M' },
+    { v: 9, lbl: '9M' }, { v: 12, lbl: '1A' }, { v: 999, lbl: 'Tudo' },
   ];
-
-  // movimentações
-  const setP = new Set(prev.map(r=>r.cod_empresa+'|'+r.matricula));
-  const setC = new Set(curr.map(r=>r.cod_empresa+'|'+r.matricula));
-  const novos = curr.filter(r => !setP.has(r.cod_empresa+'|'+r.matricula));
-  const saidos = prev.filter(r => !setC.has(r.cod_empresa+'|'+r.matricula));
-
-  // alertas
-  const alerts = [];
-  if (kc.pctInat > pctInatMax) alerts.push({n:'r', t:'Inativos acima da meta', m: `${fmt.pct(kc.pctInat)} de inativos (meta ≤ ${fmt.pct(pctInatMax)}).`});
-  if (tn > turnMax) alerts.push({n:'y', t:'Turnover acima da meta', m:`Turnover ${fmt.pct(tn)} (meta ≤ ${fmt.pct(turnMax)}).`});
-
-  const cardHtml = (m) => {
-    const d = m.a - m.b;
-    const dpct = m.b ? (d/m.b) : 0;
-    const vrep = m.fmt==='brl' ? fmt.brlk(m.a) : (m.fmt==='pct' ? fmt.pct(m.a) : fmt.num(m.a));
-    let dCls = 'flat';
-    if (d !== 0){
-      const positive = d > 0;
-      if (m.dir === 'down') dCls = positive ? 'down' : 'up';
-      else if (m.dir === 'up') dCls = positive ? 'up' : 'down';
-      else dCls = positive ? 'down' : 'up';
-    }
-    const ds = m.b === 0 ? '' : `<div class="delta ${dCls}">${dpct>=0?'▲':'▼'} ${fmt.pp(dpct)}</div>`;
-    return `<div class="kpi"><div class="lbl">${m.l}</div><div class="big sm">${vrep}</div>${ds}</div>`;
-  };
-
-  const html = `
-    <h1>Comparativo</h1>
-    <div class="card">
-      <div style="font-size:12px;color:var(--mut);margin-bottom:6px">COMPARANDO</div>
-      <select id="cmpPrev" onchange="cmpSetPrev(this.value)" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:9px;font-size:14px;">
-        ${MESES.map(m => `<option value="${m}" ${m===CMP_PREV?'selected':''}>${m===MES?'(atual) ':''}${mesLabel(m)}</option>`).join('')}
-      </select>
-      <div style="font-size:12px;color:var(--mut);margin-top:8px">vs. <b>${mesLabel(MES)}</b> (mês atual no topo)</div>
-    </div>
-    ${alerts.length ? '<div class="sect">ALERTAS</div>' + alerts.map(a=>`<div class="alert ${a.n}"><span class="ic">${a.n==='r'?'🔴':'🟡'}</span><div><div class="t">${a.t}</div><div class="m">${a.m}</div></div></div>`).join('') : ''}
-    <div class="sect">VARIAÇÕES</div>
-    <div class="row2">${metrics.map(cardHtml).join('')}</div>
-    <div class="sect">ADMISSÕES (${novos.length})</div>
-    <div class="card">${novos.length ? novos.slice(0,30).map(rowMov).join('') : '<div class="empty">Nenhuma admissão.</div>'}</div>
-    <div class="sect">DEMISSÕES (${saidos.length})</div>
-    <div class="card">${saidos.length ? saidos.slice(0,30).map(rowMov).join('') : '<div class="empty">Nenhuma demissão.</div>'}</div>
-    <div class="sect">EVOLUÇÃO</div>
-    <div class="card"><canvas id="evChart" height="180"></canvas></div>
+  $('#main').innerHTML = `
+    <h1>Evolução · ${entLabel()}</h1>
+    <div class="subtitle">${mesLabelLong(MES)}</div>
+    <div class="toggle">${janelas.map(j=>`<span class="${j.v===WIN?'on':''}" onclick="setWin(${j.v})">${j.lbl}</span>`).join('')}</div>
+    <div id="evBody"><div class="empty">Carregando…</div></div>
   `;
-  $('#main').innerHTML = html;
-  drawEvolucao();
-}
-function cmpSetPrev(m){ CMP_PREV = m; renderComparativo(); }
-function rowMov(r){
-  const emp = (DATA.empresas.find(e=>e.cod_empresa===r.cod_empresa)||{}).nome_curto || r.cod_empresa;
-  const cargo = (DATA.cargos.find(c=>c.cod_cargo===r.cod_cargo)||{}).nome_cargo || ('cargo '+(r.cod_cargo||'?'));
-  return `<div class="list-it"><div class="lt"><div class="n">${r.nome||r.matricula}</div><div class="s">${emp} · ${cargo}</div></div><div class="r">${fmt.brl(+r.salario_base||0)}<small>${r.dt_admissao||r.dt_demissao||''}</small></div></div>`;
-}
-async function drawEvolucao(){
-  // pega últimos 6 meses
-  const meses6 = MESES.slice(0,6).reverse();
-  const series = await Promise.all(meses6.map(async m => {
-    const rows = await fetchMes(m);
-    return { m, k: kpisDoMes(rows) };
-  }));
+  // Pega janela: últimos WIN meses incluindo MES atual
+  const idx = MESES.indexOf(MES);
+  let mesesJanela;
+  if (WIN >= 999) mesesJanela = MESES.slice(idx).reverse();
+  else mesesJanela = MESES.slice(idx, idx + WIN).reverse(); // do mais antigo pro mais recente
+  if (!mesesJanela.length) { $('#evBody').innerHTML='<div class="empty">Sem dados no período.</div>'; return; }
+
+  const series = [];
+  for (const m of mesesJanela){
+    const rows = filterByEnt(await fetchMes(m));
+    const k = kpisOf(rows);
+    series.push({ m, rows, k });
+  }
+  const last = series[series.length-1];
+  const first = series[0];
+  // delta entre primeiro e último do janela
+  const dHead = last.k.head - first.k.head;
+  const dProv = last.k.prov - first.k.prov;
+  const dProvPct = first.k.prov ? dProv/first.k.prov : 0;
+  const dEnc = last.k.enc - first.k.enc;
+  const dEncPct = first.k.enc ? dEnc/first.k.enc : 0;
+
+  // movimentações na janela: quem aparece no último mas não no primeiro = admitido na janela
+  const setLast = new Set(last.rows.map(r=>r.cod_empresa+'|'+r.matricula));
+  const setFirst = new Set(first.rows.map(r=>r.cod_empresa+'|'+r.matricula));
+  const adms = last.rows.filter(r => !setFirst.has(r.cod_empresa+'|'+r.matricula));
+  const dems = first.rows.filter(r => !setLast.has(r.cod_empresa+'|'+r.matricula));
+
+  const bodyHtml = `
+    <div class="sect">JANELA ${first.m === last.m ? '' : '· ' + mesLabel(first.m) + ' → ' + mesLabel(last.m)}</div>
+    <div class="row3">
+      <div class="kpi"><div class="lbl">Pessoas hoje</div><div class="big">${last.k.head}</div><div class="delta ${dHead>0?'up':(dHead<0?'down':'flat')}">${dHead>0?'▲':(dHead<0?'▼':'•')} ${dHead>0?'+':''}${dHead}</div></div>
+      <div class="kpi"><div class="lbl">Folha bruta</div><div class="big">${fmt.brlk(last.k.prov)}</div><div class="delta ${dProv>0?'down':(dProv<0?'up':'flat')}">${dProv>0?'▲':(dProv<0?'▼':'•')} ${fmt.pp(dProvPct)}</div></div>
+      <div class="kpi"><div class="lbl">C/ encargos</div><div class="big">${fmt.brlk(last.k.enc)}</div><div class="delta ${dEnc>0?'down':(dEnc<0?'up':'flat')}">${dEnc>0?'▲':(dEnc<0?'▼':'•')} ${fmt.pp(dEncPct)}</div></div>
+    </div>
+
+    <div class="sect">EVOLUÇÃO</div>
+    <div class="card"><canvas id="evCustoChart" height="180"></canvas></div>
+    <div class="card" style="margin-top:10px"><canvas id="evHeadChart" height="160"></canvas></div>
+    <div class="card" style="margin-top:10px"><canvas id="evInatChart" height="160"></canvas></div>
+
+    <div class="sect">MOVIMENTAÇÃO NA JANELA</div>
+    <div class="card">
+      <div class="line"><span>Admissões</span><span class="v">${adms.length}</span></div>
+      <div class="line"><span>Demissões</span><span class="v">${dems.length}</span></div>
+      <div class="line"><span>Saldo líquido</span><span class="v" style="color:${(adms.length-dems.length)>=0?'var(--green)':'var(--red)'}">${(adms.length-dems.length)>=0?'+':''}${adms.length-dems.length} pessoas</span></div>
+    </div>
+
+    ${adms.length ? `<div class="sect">ADMITIDOS NA JANELA (${adms.length})</div><div class="card">${adms.map(rowPessoa).join('')}</div>` : ''}
+    ${dems.length ? `<div class="sect">DEMITIDOS / SAÍRAM (${dems.length})</div><div class="card">${dems.map(rowPessoa).join('')}</div>` : ''}
+  `;
+  $('#evBody').innerHTML = bodyHtml;
+
+  // Charts
   const labels = series.map(s => mesLabel(s.m));
-  const ctx = $('#evChart');
-  if (!ctx) return;
-  CHARTS.ev = new Chart(ctx, {
+  const head = series.map(s => s.k.head);
+  const prov = series.map(s => s.k.prov/1000);
+  const enc = series.map(s => s.k.enc/1000);
+  const inat = series.map(s => s.k.pctInat*100);
+  CHARTS.evCusto = new Chart($('#evCustoChart'), {
     type: 'line',
-    data: {
-      labels,
-      datasets: [
-        { label: 'Folha bruta (R$ k)', data: series.map(s => s.k.prov/1000), borderColor: '#2E75B6', tension: 0.3, pointRadius: 3 },
-        { label: 'C/ encargos (R$ k)', data: series.map(s => s.k.enc/1000), borderColor: '#1F3864', tension: 0.3, pointRadius: 3 },
-      ]
-    },
-    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }, scales: { y: { beginAtZero: false } } }
+    data: { labels, datasets: [
+      { label:'Folha (R$ k)', data: prov, borderColor:'#2E75B6', backgroundColor:'rgba(46,117,182,.15)', tension:.3, fill:true, pointRadius:3 },
+      { label:'C/ encargos (R$ k)', data: enc, borderColor:'#1F3864', tension:.3, pointRadius:3 },
+    ]},
+    options: { plugins:{ legend:{ position:'bottom', labels:{ font:{size:11}} } }, scales:{ y:{ beginAtZero:false } } }
+  });
+  CHARTS.evHead = new Chart($('#evHeadChart'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label:'Pessoas', data: head, backgroundColor:'#2E75B6' }]},
+    options: { plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:false } } }
+  });
+  CHARTS.evInat = new Chart($('#evInatChart'), {
+    type: 'line',
+    data: { labels, datasets: [{ label:'% Inativos', data: inat, borderColor:'#E24B4A', backgroundColor:'rgba(226,75,74,.15)', tension:.3, fill:true, pointRadius:3 }]},
+    options: { plugins:{ legend:{ position:'bottom', labels:{ font:{size:11}} } }, scales:{ y:{ beginAtZero:true } } }
   });
 }
-
-// ===== OBRA =====
-let OBRA_SEL = null;
-function renderObra(){
-  if (!OBRA_SEL) OBRA_SEL = (DATA.obras[0]||{}).cod_obra || null;
-  // monta dados consolidados: cod_obra (direto) + departamentos vinculados
-  const obrasList = DATA.obras.map(o => ({...o}));
-  const html = `
-    <h1>Visão Obra</h1>
-    <div class="toggle">${obrasList.map(o => `<span class="${o.cod_obra===OBRA_SEL?'on':''}" onclick="setObra('${o.cod_obra}')">${o.apelido||o.cod_obra}</span>`).join('')}</div>
-    <div id="obraBody"></div>`;
-  $('#main').innerHTML = html;
-  drawObra();
-}
-function setObra(c){ OBRA_SEL = c; renderObra(); }
-function drawObra(){
-  // pessoas com cod_obra === sel OU departamento vinculado a essa obra
-  const depsVinculados = new Set(DATA.deps.filter(d => d.cod_obra_vinculada === OBRA_SEL).map(d => d.cod_empresa+'|'+d.cod_departamento));
-  const rows = DATA.folha.filter(r => r.cod_obra === OBRA_SEL || depsVinculados.has(r.cod_empresa+'|'+r.cod_departamento));
-  if (!rows.length){
-    $('#obraBody').innerHTML = '<div class="empty">Sem pessoas alocadas a essa obra no mês.</div>';
-    return;
-  }
-  const k = kpisDoMes(rows);
-  const porEmp = {};
-  for (const r of rows){
-    if (!porEmp[r.cod_empresa]) porEmp[r.cod_empresa] = 0;
-    porEmp[r.cod_empresa]++;
-  }
-  const porEmpHtml = Object.entries(porEmp).map(([c,n]) => {
-    const nome = (DATA.empresas.find(e=>e.cod_empresa===c)||{}).nome_curto || c;
-    return `<div class="line"><span>${nome}</span><span class="v">${n} pessoas</span></div>`;
-  }).join('');
-  const porNivel = {};
-  for (const r of rows){
-    const car = DATA.cargos.find(x=>x.cod_cargo===r.cod_cargo);
-    const nv = (car||{}).nivel || '(sem nível)';
-    porNivel[nv] = (porNivel[nv]||0)+1;
-  }
-  const ordem = ['Aprendiz','Servente','Meio Oficial','Oficial','Especializado','Apoio','Encarregado','Contramestre','Admin','Diretoria'];
-  const nvSorted = Object.entries(porNivel).sort((a,b)=> (ordem.indexOf(a[0])+99) - (ordem.indexOf(b[0])+99));
-  const max = Math.max(...nvSorted.map(x=>x[1]));
-  const piramide = nvSorted.map(([nv,n]) => `
-    <div style="margin-bottom:8px"><div class="bar-lbl"><b>${nv}</b><span>${n}</span></div>
-    <div class="bar" style="background:linear-gradient(90deg,var(--blue) 0%,var(--blue) ${(n/max*100).toFixed(0)}%,#EDF0F5 ${(n/max*100).toFixed(0)}%);"></div></div>`).join('');
-  $('#obraBody').innerHTML = `
-    <div class="row3">
-      <div class="kpi"><div class="lbl">Pessoas</div><div class="big">${k.head}</div></div>
-      <div class="kpi"><div class="lbl">Folha</div><div class="big">${fmt.brlk(k.prov)}</div></div>
-      <div class="kpi"><div class="lbl">C/ enc.</div><div class="big">${fmt.brlk(k.enc)}</div></div>
-    </div>
-    <div class="sect">POR EMPRESA NESSA OBRA</div>
-    <div class="card">${porEmpHtml}</div>
-    <div class="sect">PIRÂMIDE HIERÁRQUICA</div>
-    <div class="card">${piramide}</div>
-    <div class="sect">PESSOAS (${rows.length})</div>
-    <div class="card">${rows.map(r => {
-      const emp = (DATA.empresas.find(e=>e.cod_empresa===r.cod_empresa)||{}).nome_curto || r.cod_empresa;
-      const cargo = (DATA.cargos.find(c=>c.cod_cargo===r.cod_cargo)||{}).nome_cargo || ('cargo '+(r.cod_cargo||'?'));
-      return `<div class="list-it"><div class="lt"><div class="n">${r.nome||r.matricula}</div><div class="s">${emp} · ${cargo} · ${r.situacao||''}</div></div><div class="r">${fmt.brl(+r.salario_base||0)}</div></div>`;
-    }).join('')}</div>`;
+function setWin(v){ WIN = v; renderEvolucao(); }
+function rowPessoa(r){
+  const cargo = (DATA.cargos.find(c=>c.cod_cargo===r.cod_cargo)||{}).nome_cargo || ('cargo '+(r.cod_cargo||'?'));
+  return `<div class="list-it"><div class="lt"><div class="n">${r.nome||r.matricula}</div><div class="s">${cargo} · ${r.situacao||''}</div></div><div class="r">${fmt.brl(+r.salario_base||0)}<small>${r.dt_admissao||r.dt_demissao||''}</small></div></div>`;
 }
 
 // ===== EQUIPE =====
 let EQ_FILTER = '';
 function renderEquipe(){
+  const all = filterByEnt(DATA.folha);
   const f = EQ_FILTER.toLowerCase();
-  const rows = DATA.folha.filter(r => !f || (r.nome||'').toLowerCase().includes(f) || (r.matricula||'').toString().includes(f));
+  const rows = all.filter(r => !f || (r.nome||'').toLowerCase().includes(f) || (r.matricula||'').toString().includes(f) || ((DATA.cargos.find(c=>c.cod_cargo===r.cod_cargo)||{}).nome_cargo||'').toLowerCase().includes(f));
   rows.sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
   const html = `
-    <h1>Equipe · ${rows.length}</h1>
-    <input id="eqf" oninput="eqSet(this.value)" placeholder="Buscar por nome ou matrícula…" value="${EQ_FILTER}" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;font-size:14px;margin-bottom:10px;">
-    <div class="card">${rows.length ? rows.slice(0,80).map(r => {
-      const emp = (DATA.empresas.find(e=>e.cod_empresa===r.cod_empresa)||{}).nome_curto || r.cod_empresa;
+    <h1>Equipe · ${entLabel()}</h1>
+    <div class="subtitle">${rows.length} de ${all.length} pessoas</div>
+    <div class="action-row"><button onclick="exportarPDFEquipe()">📄 PDF da relação</button></div>
+    <input id="eqf" oninput="eqSet(this.value)" placeholder="Buscar nome, matrícula ou cargo…" value="${EQ_FILTER}" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;font-size:14px;margin-bottom:10px;">
+    <div class="card">${rows.length ? rows.slice(0,100).map(r => {
       const cargo = (DATA.cargos.find(c=>c.cod_cargo===r.cod_cargo)||{}).nome_cargo || ('cargo '+(r.cod_cargo||'?'));
-      return `<div class="list-it"><div class="lt"><div class="n">${r.nome||r.matricula} <span style="color:var(--mut);font-weight:normal;font-size:11px">· ${r.matricula}</span></div><div class="s">${emp} · ${cargo} · <span style="color:${r.situacao==='Ativo'?'var(--green)':'var(--red)'}">${r.situacao||'?'}</span></div></div><div class="r">${fmt.brl(+r.salario_base||0)}<small>${r.dt_admissao||''}</small></div></div>`;
-    }).join('') + (rows.length>80?'<div class="empty">… mostrando 80 de '+rows.length+'. Filtre pra ver mais.</div>':'') : '<div class="empty">Nenhum funcionário encontrado.</div>'}</div>`;
+      return `<div class="list-it"><div class="lt"><div class="n">${r.nome||r.matricula} <span style="color:var(--mut);font-weight:normal;font-size:11px">· ${r.matricula}</span></div><div class="s">${cargo} · <span style="color:${r.situacao==='Ativo'?'var(--green)':'var(--red)'}">${r.situacao||'?'}</span> · ${r.dt_admissao||''}</div></div><div class="r">${fmt.brl(+r.salario_base||0)}</div></div>`;
+    }).join('') + (rows.length>100?`<div class="empty">… mostrando 100 de ${rows.length}. Use a busca ou o PDF para ver todos.</div>`:'') : '<div class="empty">Nenhum funcionário encontrado.</div>'}</div>
+  `;
   $('#main').innerHTML = html;
 }
 function eqSet(v){ EQ_FILTER = v; renderEquipe(); }
+
+// ===== MAIS =====
+function renderMais(){
+  const k = kpisOf(filterByEnt(DATA.folha));
+  $('#main').innerHTML = `
+    <h1>Mais</h1>
+    <div class="subtitle">Exportações e conta</div>
+    <button class="bigbtn" onclick="exportarPDFPainel()"><span class="ic">📄</span><span><b>PDF do painel</b><small>KPIs e tabelas de ${entLabel()} · ${mesLabel(MES)}</small></span></button>
+    <button class="bigbtn" onclick="exportarPDFEquipe()"><span class="ic">👥</span><span><b>PDF da equipe</b><small>Relação completa filtrada por ${entLabel()}</small></span></button>
+    <button class="bigbtn" onclick="exportarPDFEvolucao()"><span class="ic">📈</span><span><b>PDF da evolução</b><small>Janela atual com gráficos</small></span></button>
+    <div class="msect">CONTA</div>
+    <div class="card" style="margin-bottom:14px">${USER ? `<b>${USER.email}</b><br><small style="color:var(--mut)">${IS_MANAGER?'Acesso de manager':'Acesso de leitura'}</small>` : ''}</div>
+    <button class="bigbtn" onclick="doLogout()"><span class="ic">↩</span><span><b>Sair</b><small>Encerra a sessão</small></span></button>
+    <div class="note">Apex Engenharia · v0.2</div>
+  `;
+}
 
 // ===== MENU / MODAIS =====
 function openMenu(){ $('#menu').classList.add('on'); }
 function openUpload(){ if(!IS_MANAGER) return; $('#upload').classList.add('on'); $('#uploadStatus').innerHTML=''; }
 function closeUpload(){ $('#upload').classList.remove('on'); }
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('modal')) e.target.classList.remove('on');
-});
+document.addEventListener('click', e => { if (e.target.classList.contains('modal')) e.target.classList.remove('on'); });
 
 // ===== UPLOAD XLS (SheetJS) =====
 async function onUpload(ev){
   const files = ev.target.files;
   if (!files || !files.length) return;
-  const status = $('#uploadStatus');
-  status.innerHTML = '';
+  const status = $('#uploadStatus'); status.innerHTML = '';
   for (const f of files){
     status.innerHTML += `<div class="line"><span>${f.name}</span><span class="v" id="st_${f.name.replace(/[^a-z0-9]/gi,'_')}">processando…</span></div>`;
   }
@@ -634,9 +711,9 @@ async function onUpload(ev){
       const wb = XLSX.read(buf, { type: 'array', cellDates: false });
       const sheet = wb.Sheets[wb.SheetNames[0]];
       const grid = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
-      const parsed = parseAnaliticoGrid(grid, f.name);
+      const parsed = parseAnalitico(grid, f.name);
       if (!parsed.empresa.cod_empresa || !parsed.mes_ref) throw new Error('Cabeçalho inválido.');
-      const res = await upsertFolha(parsed);
+      await upsertFolha(parsed);
       $('#'+sid).textContent = `✓ ${parsed.empresa.cod_empresa==='1'?'APEX':'JR6'} ${parsed.mes_ref} · ${parsed.funcionarios.length} pessoas`;
       $('#'+sid).style.color = 'var(--green)';
     } catch (e) {
@@ -644,229 +721,226 @@ async function onUpload(ev){
       $('#'+sid).style.color = 'var(--red)';
     }
   }
+  HIST = {};
   await loadData();
   if (MES) await loadMes(MES);
   render();
-  status.innerHTML += '<div class="note">Pronto. Feche o painel pra ver as atualizações.</div>';
 }
-
-// parser XLS analítico — baseado no parser Python que já testamos
-function parseAnaliticoGrid(grid, fileName){
+function parseAnalitico(grid, fileName){
   const MESES_PT = {JANEIRO:1,FEVEREIRO:2,MARCO:3,ABRIL:4,MAIO:5,JUNHO:6,JULHO:7,AGOSTO:8,SETEMBRO:9,OUTUBRO:10,NOVEMBRO:11,DEZEMBRO:12};
   const strip = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase();
-  const cell = (r,c) => (grid[r] && grid[r][c] != null) ? grid[r][c] : '';
-  let mes_ref = null;
-  let empresa = {}, obra = {};
-  const funcStartRows = [];
-  for (let r = 0; r < grid.length; r++){
-    const row = grid[r] || [];
-    const text = row.map(x => String(x||'')).join(' ');
+  let mes_ref=null, empresa={}, obra={}, funcStartRows=[];
+  for (let r=0;r<grid.length;r++){
+    const row = grid[r]||[]; const text = row.map(x=>String(x||'')).join(' ');
     if (!mes_ref){
       const m = strip(text).match(/FOLHA ANAL[ÍI]TICA\s*-\s*([A-Z]+)\s*\/\s*(\d{4})/);
-      if (m){
-        const mnome = strip(m[1]);
-        const mes = MESES_PT[mnome];
-        if (mes) mes_ref = m[2] + '-' + String(mes).padStart(2,'0');
-      }
+      if (m){ const M=MESES_PT[strip(m[1])]; if (M) mes_ref = m[2]+'-'+String(M).padStart(2,'0'); }
     }
-    if (row[0] === 'Empresa:'){
+    if (row[0]==='Empresa:'){
       const cod = String(row[3]||'').replace(/\.0$/,'');
       const razao = String(row[4]||'').trim();
-      const cnpj = (() => { for(let c=0;c<row.length;c++) if(row[c]==='CNPJ:') return String(row[c+1]||'').trim(); return ''; })();
+      let cnpj=''; for(let c=0;c<row.length;c++) if(row[c]==='CNPJ:'){ cnpj=String(row[c+1]||'').trim(); break; }
       empresa = { cod_empresa: cod, razao_social: razao, cnpj };
-    } else if (row[0] === 'Obra:'){
-      const cod = String(row[3]||'').trim();
-      const nome = String(row[4]||'').trim();
-      const cnpj_cno = (() => { for(let c=0;c<row.length;c++) if(row[c]==='CNPJ/CNO:') return String(row[c+1]||'').trim(); return ''; })();
+    } else if (row[0]==='Obra:'){
+      const cod = String(row[3]||'').trim(); const nome = String(row[4]||'').trim();
+      let cnpj_cno=''; for(let c=0;c<row.length;c++) if(row[c]==='CNPJ/CNO:'){ cnpj_cno=String(row[c+1]||'').trim(); break; }
       obra = { cod_obra: cod, nome_obra: nome, cnpj_cno };
-    } else if (row[0] === 'Funcionário:'){
-      funcStartRows.push(r);
-    }
+    } else if (row[0]==='Funcionário:') funcStartRows.push(r);
   }
-  const funcionarios = [];
-  for (let i = 0; i < funcStartRows.length; i++){
-    const r0 = funcStartRows[i];
-    const rEnd = funcStartRows[i+1] || grid.length;
-    const f = parseBlock(grid, r0, rEnd, strip);
+  const funcionarios=[];
+  for (let i=0;i<funcStartRows.length;i++){
+    const f = parseBloco(grid, funcStartRows[i], funcStartRows[i+1]||grid.length);
     if (f) funcionarios.push(f);
   }
   return { mes_ref, empresa, obra, funcionarios, arquivo_origem: fileName };
 }
-function parseBlock(grid, r0, rEnd, strip){
-  const row0 = grid[r0] || [];
-  let matricula = '';
-  for (let c=1;c<row0.length;c++) if (row0[c] && c >= 1) { matricula = String(row0[c]).replace(/\.0$/,''); break; }
-  let nome = '';
-  let lastIdx = -1;
-  for (let c=0;c<row0.length;c++) if (String(row0[c]||'')===matricula) { lastIdx=c; break; }
-  for (let c=lastIdx+1;c<row0.length;c++) if (row0[c]) { nome = String(row0[c]).trim(); break; }
-  let situacao = 'Ativo';
+function parseBloco(grid, r0, rEnd){
+  const row0 = grid[r0]||[];
+  let matricula='', lastIdx=-1;
+  for (let c=1;c<row0.length;c++) if (row0[c]){ matricula=String(row0[c]).replace(/\.0$/,''); lastIdx=c; break; }
+  let nome='';
+  for (let c=lastIdx+1;c<row0.length;c++) if (row0[c]){ nome=String(row0[c]).trim(); break; }
+  let situacao='Ativo';
   for (const v of row0){
     if (v && String(v).includes('Situação:')){
       const m = String(v).match(/Situa[cç][aã]o:\s*\d+\s*(\w+)/);
-      if (m) situacao = m[1];
-      break;
+      if (m) situacao = m[1]; break;
     }
   }
   if (!matricula || !nome) return null;
-  const f = { matricula, nome, situacao, cpf:null, pis:null, nascimento:null,
-              dt_admissao:null, dt_demissao:null,
-              cod_departamento:null, nome_departamento:'',
-              cod_cargo:null, nome_cargo:'', cod_funcao:null, nome_funcao:'',
-              salario_base:0, proventos_total:0, descontos_total:0, liquido:0,
-              base_inss:0, base_fgts:0, fgts:0, base_irrf:0, dependentes_ir:0,
-              cod_obra:null, eventos:[] };
+  const f = { matricula, nome, situacao, cpf:null, pis:null, nascimento:null, dt_admissao:null, dt_demissao:null,
+    cod_departamento:null, nome_departamento:'', cod_cargo:null, nome_cargo:'', cod_funcao:null, nome_funcao:'',
+    salario_base:0, proventos_total:0, descontos_total:0, liquido:0,
+    base_inss:0, base_fgts:0, fgts:0, base_irrf:0, dependentes_ir:0, cod_obra:null };
   for (let r=r0+1;r<rEnd;r++){
-    const row = grid[r] || [];
-    const txt = row.map(x=>String(x||'')).join(' ');
-    if (row[0] === 'Nascimento:'){
+    const row=grid[r]||[]; const txt=row.map(x=>String(x||'')).join(' ');
+    if (row[0]==='Nascimento:'){
       f.nascimento = parseDate(row[3]);
-      const after = (lab) => { for(let c=0;c<row.length;c++) if(row[c]===lab) return row[c+1]||row[c+2]||''; return ''; };
-      f.cpf = onlyDigits(after('CPF:'));
-      f.pis = onlyDigits(after('PIS:'));
-      const dep = after('Dependente IR:');
-      f.dependentes_ir = parseInt(dep||'0',10) || 0;
-    } else if (row[0] === 'Dt. admissão:'){
+      const aft = lab => { for(let c=0;c<row.length;c++) if(row[c]===lab){ for(let k=c+1;k<row.length;k++) if(row[k]) return row[k]; } return null; };
+      f.cpf = onlyDigits(aft('CPF:')); f.pis = onlyDigits(aft('PIS:'));
+      const di = aft('Dependente IR:'); f.dependentes_ir = parseInt(di||'0',10) || 0;
+    } else if (row[0]==='Dt. admissão:'){
       f.dt_admissao = parseDate(row[3]);
       let demIdx=-1, depIdx=-1;
       for (let c=0;c<row.length;c++){ if(row[c]==='Dt. demissão:') demIdx=c; if(row[c]==='Departamento:') depIdx=c; }
       if (depIdx>0){
-        // cod_dep = última célula numérica entre dem e dep
-        for (let c=depIdx-1;c>demIdx;c--){
-          const v = row[c];
-          if (v != null && !isNaN(+String(v).replace(/\./g,''))){
-            f.cod_departamento = String(v).replace(/\.0$/,'');
-            break;
-          }
-        }
-        // nome_dep = próximo não vazio após depIdx
-        for (let c=depIdx+1;c<row.length;c++) if (row[c]) { f.nome_departamento = String(row[c]).trim(); break; }
+        for (let c=depIdx-1;c>demIdx;c--){ const v=row[c]; if (v!=null && !isNaN(+String(v).replace(/\./g,''))){ f.cod_departamento=String(v).replace(/\.0$/,''); break; } }
+        for (let c=depIdx+1;c<row.length;c++) if (row[c]){ f.nome_departamento=String(row[c]).trim(); break; }
       }
-    } else if (row[0] === 'Salário:'){
+    } else if (row[0]==='Salário:'){
       f.salario_base = parseNum(row[3]);
       let cargoIdx=-1, funcaoIdx=-1;
       for (let c=0;c<row.length;c++){ if(row[c]==='Cargo:') cargoIdx=c; if(row[c]==='Função:') funcaoIdx=c; }
       if (cargoIdx>0){
-        for (let c=cargoIdx+1;c<row.length;c++) if(row[c]) { f.nome_cargo = String(row[c]).trim(); break; }
-        for (let c=cargoIdx-1;c>0;c--){
-          const v=row[c];
-          if (v != null && !isNaN(+String(v).replace(/\./g,'')) && +v !== +row[3]){ f.cod_cargo = String(v).replace(/\.0$/,''); break; }
-        }
+        for (let c=cargoIdx+1;c<row.length;c++) if(row[c]){ f.nome_cargo=String(row[c]).trim(); break; }
+        for (let c=cargoIdx-1;c>0;c--){ const v=row[c]; if (v!=null && !isNaN(+String(v).replace(/\./g,'')) && +v !== +row[3]){ f.cod_cargo=String(v).replace(/\.0$/,''); break; } }
       }
-      if (funcaoIdx>0){
-        for (let c=funcaoIdx+1;c<row.length;c++) if(row[c]) { f.nome_funcao = String(row[c]).trim(); break; }
-      }
+      if (funcaoIdx>0) for (let c=funcaoIdx+1;c<row.length;c++) if(row[c]){ f.nome_funcao=String(row[c]).trim(); break; }
     } else if (txt.includes('Proventos:') && txt.includes('Descontos:')){
-      f.proventos_total = parseNum(findAfter(row, 'Proventos:'));
-      f.descontos_total = parseNum(findAfter(row, 'Descontos:'));
+      f.proventos_total = parseNum(findAfter(row,'Proventos:'));
+      f.descontos_total = parseNum(findAfter(row,'Descontos:'));
     } else if (txt.includes('LÍQUIDO:')){
-      f.liquido = parseNum(findAfter(row, 'LÍQUIDO:'));
+      f.liquido = parseNum(findAfter(row,'LÍQUIDO:'));
     } else if (txt.includes('Base INSS:') && txt.includes('Base FGTS:')){
-      f.base_inss = parseNum(findAfter(row, 'Base INSS:'));
-      f.base_fgts = parseNum(findAfter(row, 'Base FGTS:'));
-      f.fgts = parseNum(findAfter(row, 'FGTS:'));
+      f.base_inss = parseNum(findAfter(row,'Base INSS:'));
+      f.base_fgts = parseNum(findAfter(row,'Base FGTS:'));
+      f.fgts = parseNum(findAfter(row,'FGTS:'));
     } else if (txt.includes('Base IRRF:')){
-      f.base_irrf = parseNum(findAfter(row, 'Base IRRF:'));
+      f.base_irrf = parseNum(findAfter(row,'Base IRRF:'));
     }
   }
-  // obra default: cabeçalho global é configurado depois no upsert
   return f;
 }
-function findAfter(row, label){ for(let c=0;c<row.length;c++) if(row[c]===label){ for(let k=c+1;k<row.length;k++) if(row[k]) return row[k]; } return null; }
+function findAfter(row,lab){ for(let c=0;c<row.length;c++) if(row[c]===lab){ for(let k=c+1;k<row.length;k++) if(row[k]) return row[k]; } return null; }
 function parseNum(v){ if(v==null) return 0; if(typeof v==='number') return v; const s=String(v).replace(/\./g,'').replace(',','.').replace(/[^\d.\-]/g,''); const n=parseFloat(s); return isNaN(n)?0:n; }
-function parseDate(v){ if(!v) return null; if (v instanceof Date) return v.toISOString().split('T')[0];
-  const s = String(v).trim();
-  const m = s.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-  if (m) return m[3]+'-'+m[2]+'-'+m[1];
-  return null;
-}
-function onlyDigits(v){ const s = String(v||'').replace(/\D/g,''); return s || null; }
+function parseDate(v){ if(!v) return null; if(v instanceof Date) return v.toISOString().split('T')[0]; const s=String(v).trim(); const m=s.match(/(\d{2})\/(\d{2})\/(\d{4})/); return m ? m[3]+'-'+m[2]+'-'+m[1] : null; }
+function onlyDigits(v){ const s=String(v||'').replace(/\D/g,''); return s||null; }
 
-// ===== UPSERT NO SUPABASE =====
 async function upsertFolha(parsed){
   const codEmp = parsed.empresa.cod_empresa;
-  const codObraHeader = (parsed.obra||{}).cod_obra || null;
-  // garantir empresa
-  await sb.from('empresas').upsert({ cod_empresa: codEmp, razao_social: parsed.empresa.razao_social, nome_curto: parsed.empresa.razao_social.slice(0,20), cnpj: parsed.empresa.cnpj }, { onConflict: 'cod_empresa', ignoreDuplicates: true });
-  if (codObraHeader){
-    await sb.from('obras').upsert({ cod_obra: codObraHeader, nome_obra: parsed.obra.nome_obra || codObraHeader, cnpj_cno: parsed.obra.cnpj_cno, empresa_responsavel: codEmp, status: 'Em execução' }, { onConflict: 'cod_obra', ignoreDuplicates: true });
-  }
-  // garantir cargos/deps novos
-  const cargosSet = {}, depsSet = {};
+  const codObra = (parsed.obra||{}).cod_obra || null;
+  await sb.from('empresas').upsert({ cod_empresa: codEmp, razao_social: parsed.empresa.razao_social, nome_curto: parsed.empresa.razao_social.slice(0,20), cnpj: parsed.empresa.cnpj }, { onConflict:'cod_empresa', ignoreDuplicates:true });
+  if (codObra) await sb.from('obras').upsert({ cod_obra: codObra, nome_obra: parsed.obra.nome_obra||codObra, cnpj_cno: parsed.obra.cnpj_cno, empresa_responsavel: codEmp, status:'Em execução' }, { onConflict:'cod_obra', ignoreDuplicates:true });
+  const cargosSet={}, depsSet={};
   for (const f of parsed.funcionarios){
     if (f.cod_cargo && !cargosSet[f.cod_cargo]) cargosSet[f.cod_cargo] = f.nome_cargo || f.cod_cargo;
     if (f.cod_departamento && !depsSet[f.cod_departamento]) depsSet[f.cod_departamento] = f.nome_departamento || f.cod_departamento;
   }
-  if (Object.keys(cargosSet).length){
-    await sb.from('cargos').upsert(Object.entries(cargosSet).map(([c,n]) => ({ cod_cargo: c, nome_cargo: n, nivel: 'Oficial', categoria: 'Operacional', demanda_aprendiz: false })), { onConflict: 'cod_cargo', ignoreDuplicates: true });
-  }
-  if (Object.keys(depsSet).length){
-    await sb.from('departamentos').upsert(Object.entries(depsSet).map(([c,n]) => ({ cod_empresa: codEmp, cod_departamento: c, nome_departamento: n, tipo: 'ADM' })), { onConflict: 'cod_empresa,cod_departamento', ignoreDuplicates: true });
-  }
-  const rows = parsed.funcionarios.map(f => ({
-    mes_ref: parsed.mes_ref,
-    cod_empresa: codEmp,
-    matricula: f.matricula,
+  if (Object.keys(cargosSet).length) await sb.from('cargos').upsert(Object.entries(cargosSet).map(([c,n])=>({cod_cargo:c, nome_cargo:n, nivel:'Oficial', categoria:'Operacional', demanda_aprendiz:false})), { onConflict:'cod_cargo', ignoreDuplicates:true });
+  if (Object.keys(depsSet).length) await sb.from('departamentos').upsert(Object.entries(depsSet).map(([c,n])=>({cod_empresa:codEmp, cod_departamento:c, nome_departamento:n, tipo:'ADM'})), { onConflict:'cod_empresa,cod_departamento', ignoreDuplicates:true });
+  const rows = parsed.funcionarios.map(f=>({
+    mes_ref: parsed.mes_ref, cod_empresa: codEmp, matricula: f.matricula,
     nome: f.nome, cpf: f.cpf, pis: f.pis,
     nascimento: f.nascimento, dt_admissao: f.dt_admissao, dt_demissao: f.dt_demissao,
-    situacao: f.situacao,
-    cod_departamento: f.cod_departamento,
-    cod_obra: f.cod_obra || codObraHeader,
-    cod_cargo: f.cod_cargo, cod_funcao: f.cod_funcao,
+    situacao: f.situacao, cod_departamento: f.cod_departamento,
+    cod_obra: f.cod_obra || codObra, cod_cargo: f.cod_cargo, cod_funcao: f.cod_funcao,
     salario_base: f.salario_base, proventos_total: f.proventos_total,
     descontos_total: f.descontos_total, liquido: f.liquido,
     base_inss: f.base_inss, base_fgts: f.base_fgts, fgts: f.fgts, base_irrf: f.base_irrf,
-    dependentes_ir: f.dependentes_ir,
-    arquivo_origem: parsed.arquivo_origem,
+    dependentes_ir: f.dependentes_ir, arquivo_origem: parsed.arquivo_origem,
   }));
-  const res = await sb.from('folha_mensal').upsert(rows, { onConflict: 'mes_ref,cod_empresa,matricula' });
+  const res = await sb.from('folha_mensal').upsert(rows, { onConflict:'mes_ref,cod_empresa,matricula' });
   if (res.error) throw new Error(res.error.message);
   return { rows: rows.length };
 }
 
-// ===== EXPORT PDF =====
-function exportarPDF(){
+// ===== PDF =====
+function pdfHeader(doc, titulo, subtitulo){
+  doc.setFillColor(31,56,100); doc.rect(0, 0, 210, 22, 'F');
+  doc.setTextColor(255); doc.setFont('helvetica','bold'); doc.setFontSize(13);
+  doc.text('GRUPO APEX — RECURSOS HUMANOS', 14, 10);
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.text(titulo + ' · ' + subtitulo, 14, 17);
+  doc.setTextColor(0);
+  doc.setFontSize(9); doc.text('Gerado em ' + new Date().toLocaleString('pt-BR'), 150, 17);
+}
+function exportarPDFPainel(){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  doc.setFontSize(16);
-  doc.text('Grupo Apex — Recursos Humanos', 14, 18);
-  doc.setFontSize(11);
-  doc.text('Painel · ' + mesLabel(MES), 14, 26);
-  doc.setFontSize(9);
-  doc.text('Gerado em ' + new Date().toLocaleString('pt-BR'), 14, 32);
-  const k = kpisDoMes(DATA.folha);
+  pdfHeader(doc, 'Painel de RH · ' + entLabel(), mesLabelLong(MES));
+  const rows = filterByEnt(DATA.folha);
+  const k = kpisOf(rows);
+  const ratio = ratioOS(rows); const apr = pctAprendizes(rows);
   doc.autoTable({
-    startY: 40,
-    head: [['KPI','Valor']],
+    startY: 30,
+    head: [['Indicador','Valor']],
     body: [
       ['Pessoas', fmt.num(k.head)],
       ['Folha bruta', fmt.brl(k.prov)],
-      ['Custo c/ encargos', fmt.brl(k.enc)],
+      ['Custo com encargos (33% obra / 30% admin)', fmt.brl(k.enc)],
       ['% Inativos', fmt.pct(k.pctInat)],
-      ['Custo médio/pessoa', fmt.brl(k.med)],
+      ['Custo médio por pessoa', fmt.brl(k.med)],
       ['Tempo médio de casa', k.tempo.toFixed(1) + ' anos'],
+      ['Idade média', k.idade.toFixed(0) + ' anos'],
+      ['Ratio Oficial : Servente', ratio.toFixed(2)],
+      ['% Aprendizes (Lei do Aprendiz)', fmt.pct(apr)],
     ],
-    styles: { fontSize: 10 }, headStyles: { fillColor: [31, 56, 100] },
+    styles:{ fontSize:10 }, headStyles:{ fillColor:[31,56,100] },
   });
-  // top cargos
+  // Top cargos
   const map = {};
-  for (const r of DATA.folha){ if(!r.cod_cargo) continue; if(!map[r.cod_cargo]) map[r.cod_cargo]={q:0,p:0}; map[r.cod_cargo].q++; map[r.cod_cargo].p+=+r.proventos_total||0; }
-  const top = Object.entries(map).map(([c,v])=>({cod:c, nome:(DATA.cargos.find(x=>x.cod_cargo===c)||{}).nome_cargo||c, q:v.q, p:v.p})).sort((a,b)=>b.p-a.p).slice(0,10);
+  for (const r of rows){ if(!r.cod_cargo) continue; if(!map[r.cod_cargo]) map[r.cod_cargo]={q:0,p:0}; map[r.cod_cargo].q++; map[r.cod_cargo].p+=+r.proventos_total||0; }
+  const top = Object.entries(map).map(([c,v])=>({nome:(DATA.cargos.find(x=>x.cod_cargo===c)||{}).nome_cargo||c, q:v.q, p:v.p})).sort((a,b)=>b.p-a.p).slice(0,15);
   doc.autoTable({
     startY: doc.lastAutoTable.finalY + 8,
-    head: [['Cargo','Qtd','Folha bruta']],
-    body: top.map(t => [t.nome, t.q, fmt.brl(t.p)]),
-    styles: { fontSize: 9 }, headStyles: { fillColor: [31, 56, 100] },
+    head:[['Top cargos por custo','Qtd','Folha bruta']],
+    body: top.map(t=>[t.nome, t.q, fmt.brl(t.p)]),
+    styles:{ fontSize:9 }, headStyles:{ fillColor:[31,56,100] },
   });
-  doc.save(`apex-rh-${MES}.pdf`);
+  doc.save(`apex-rh-painel-${ENTIDADE}-${MES}.pdf`);
+}
+function exportarPDFEquipe(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  pdfHeader(doc, 'Equipe · ' + entLabel(), mesLabelLong(MES));
+  const f = EQ_FILTER ? EQ_FILTER.toLowerCase() : '';
+  let rows = filterByEnt(DATA.folha);
+  if (f) rows = rows.filter(r => (r.nome||'').toLowerCase().includes(f) || (r.matricula||'').toString().includes(f) || ((DATA.cargos.find(c=>c.cod_cargo===r.cod_cargo)||{}).nome_cargo||'').toLowerCase().includes(f));
+  rows.sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  doc.setFontSize(10); doc.text(`Total: ${rows.length} pessoas`, 14, 28);
+  doc.autoTable({
+    startY: 32,
+    head: [['Mat.','Nome','Cargo','Situação','Admissão','Sal. base']],
+    body: rows.map(r => [
+      r.matricula,
+      r.nome || '',
+      (DATA.cargos.find(c=>c.cod_cargo===r.cod_cargo)||{}).nome_cargo || ('cargo '+(r.cod_cargo||'?')),
+      r.situacao || '',
+      r.dt_admissao ? r.dt_admissao.split('-').reverse().join('/') : '',
+      fmt.brl(+r.salario_base||0),
+    ]),
+    styles:{ fontSize:8 }, headStyles:{ fillColor:[31,56,100] },
+    columnStyles: { 5: { halign:'right' }, 0: { halign:'right' } },
+  });
+  doc.save(`apex-rh-equipe-${ENTIDADE}-${MES}.pdf`);
+}
+async function exportarPDFEvolucao(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  pdfHeader(doc, 'Evolução · ' + entLabel(), `${WIN>=999?'Todo período':WIN+' meses'} até ${mesLabel(MES)}`);
+  const idx = MESES.indexOf(MES);
+  const mesesJanela = (WIN>=999 ? MESES.slice(idx) : MESES.slice(idx, idx+WIN)).reverse();
+  const series = [];
+  for (const m of mesesJanela){
+    const rows = filterByEnt(await fetchMes(m));
+    series.push({ m, k: kpisOf(rows) });
+  }
+  doc.autoTable({
+    startY: 30,
+    head: [['Mês','Pessoas','Folha bruta','C/ encargos','% Inativos','Custo médio']],
+    body: series.map(s => [
+      mesLabel(s.m), s.k.head, fmt.brl(s.k.prov), fmt.brl(s.k.enc), fmt.pct(s.k.pctInat), fmt.brl(s.k.med)
+    ]),
+    styles:{ fontSize:9 }, headStyles:{ fillColor:[31,56,100] },
+    columnStyles: { 1:{halign:'right'}, 2:{halign:'right'}, 3:{halign:'right'}, 4:{halign:'right'}, 5:{halign:'right'} },
+  });
+  doc.save(`apex-rh-evolucao-${ENTIDADE}-${MES}.pdf`);
 }
 
 // ===== BOOT =====
 let __boot_done = false;
 sb.auth.getSession().then(({data}) => { __boot_done = true; onSession(data.session); });
 sb.auth.onAuthStateChange((event, sess) => {
-  // Só reage a SIGNED_OUT depois do boot inicial. Outros eventos (INITIAL_SESSION, TOKEN_REFRESHED)
-  // não devem disparar UI; doLogin() já chama onSession explicitamente.
   if (!__boot_done) return;
   if (event === 'SIGNED_OUT') {
     USER = null; IS_MANAGER = false;
