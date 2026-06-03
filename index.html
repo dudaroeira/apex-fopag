@@ -862,8 +862,19 @@ function exportarPDF(){
 }
 
 // ===== BOOT =====
-sb.auth.getSession().then(({data}) => onSession(data.session));
-sb.auth.onAuthStateChange((_e, sess) => { if (!sess) location.reload(); });
+let __boot_done = false;
+sb.auth.getSession().then(({data}) => { __boot_done = true; onSession(data.session); });
+sb.auth.onAuthStateChange((event, sess) => {
+  // Só reage a SIGNED_OUT depois do boot inicial. Outros eventos (INITIAL_SESSION, TOKEN_REFRESHED)
+  // não devem disparar UI; doLogin() já chama onSession explicitamente.
+  if (!__boot_done) return;
+  if (event === 'SIGNED_OUT') {
+    USER = null; IS_MANAGER = false;
+    document.getElementById('login').classList.remove('hidden');
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('fab').classList.add('hidden');
+  }
+});
 </script>
 </body>
 </html>
