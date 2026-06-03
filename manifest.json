@@ -1,0 +1,13 @@
+{
+  "name": "Recursos Humanos — Grupo Apex",
+  "short_name": "RH Apex",
+  "description": "Painel de folha de pagamento do Grupo Apex",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F4F6F9",
+  "theme_color": "#1F3864",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

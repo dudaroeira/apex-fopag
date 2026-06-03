@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Recursos Humanos · Grupo Apex</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1F3864">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recursos Humanos">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--navy:#1F3864;--blue:#2E75B6;--green:#1D9E75;--red:#E24B4A;--amber:#BA7517;
+--bg:#F4F6F9;--card:#FFFFFF;--line:#E3E8F0;--txt:#1B2433;--mut:#6B7686;--mut2:#9AA4B2;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt);}
+#app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);display:flex;flex-direction:column;position:relative;}
+header{background:var(--navy);color:#fff;padding:14px 16px 12px;position:sticky;top:0;z-index:10;}
+.topbar{display:flex;justify-content:space-between;align-items:center;}
+.topbar .brand{font-size:12px;letter-spacing:.5px;opacity:.85;}
+.topbar .who{font-size:10px;opacity:.7;margin-top:2px;}
+.topbar .menu{background:rgba(255,255,255,.14);border:none;color:#fff;width:32px;height:32px;border-radius:9px;font-size:17px;cursor:pointer;}
+.navdate{display:flex;align-items:center;gap:8px;margin-top:11px;}
+.navdate .arrow{background:rgba(255,255,255,.14);border:none;color:#fff;width:34px;height:34px;border-radius:9px;font-size:15px;cursor:pointer;flex:none;}
+.navdate .arrow:disabled{opacity:.35;}
+.navdate select{flex:1;background:rgba(255,255,255,.14);color:#fff;border:none;border-radius:9px;padding:8px 10px;font-size:14px;font-weight:600;text-align:center;text-align-last:center;}
+.navdate select option{color:#000;}
+main{flex:1;padding:16px 16px 90px;}
+h1{font-size:18px;font-weight:600;margin-bottom:14px;}
+.kpi{background:var(--card);border-radius:14px;padding:16px;margin-bottom:10px;border:1px solid var(--line);}
+.kpi .lbl{font-size:13px;color:var(--mut);}
+.kpi .big{font-size:26px;font-weight:600;margin-top:3px;}
+.kpi .big.sm{font-size:20px;}
+.kpi .delta{font-size:12px;margin-top:4px;display:flex;align-items:center;gap:4px;}
+.up{color:var(--green);}.down{color:var(--red);}.flat{color:var(--mut);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}.row2 .kpi{margin-bottom:0;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}.row3 .kpi{margin-bottom:0;padding:12px;}.row3 .kpi .big{font-size:20px;}.row3 .kpi .lbl{font-size:11px;}
+.sect{font-size:13px;color:var(--mut);margin:18px 0 8px;font-weight:600;}
+.card{background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--line);margin-bottom:10px;}
+.toggle{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;}
+.toggle span{font-size:12px;padding:6px 13px;border-radius:16px;border:1px solid var(--line);color:var(--mut);cursor:pointer;background:var(--card);user-select:none;}
+.toggle span.on{background:#E6EEF8;color:var(--blue);border-color:#C3D6EE;font-weight:600;}
+.line{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--line);}
+.line:last-child{border-bottom:none;}.line .v{color:var(--mut);}
+.alert{border-radius:12px;padding:12px 14px;margin-bottom:9px;display:flex;gap:10px;align-items:flex-start;}
+.alert.r{background:#FBE9E9;border:1px solid #F5C7C6;color:#7E1F1E;}
+.alert.y{background:#FDF3DD;border:1px solid #F1DBA1;color:#7B5A14;}
+.alert .ic{font-size:18px;flex:none;}
+.alert .t{font-size:13px;font-weight:600;}
+.alert .m{font-size:12px;margin-top:2px;line-height:1.45;}
+.empty{text-align:center;color:var(--mut);font-size:13px;padding:30px 10px;}
+.list-it{padding:9px 12px;border-bottom:1px solid var(--line);font-size:13px;display:flex;justify-content:space-between;gap:8px;}
+.list-it:last-child{border-bottom:none;}
+.list-it .lt{flex:1;min-width:0;}
+.list-it .n{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.list-it .s{font-size:11px;color:var(--mut);margin-top:1px;}
+.list-it .r{text-align:right;flex:none;font-size:13px;}
+.list-it .r small{display:block;font-size:11px;color:var(--mut);margin-top:1px;}
+.bar-lbl{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;color:var(--mut);}
+.bar-lbl b{font-weight:600;color:var(--txt);}
+.bar{height:11px;border-radius:6px;margin-bottom:13px;min-width:6px;}
+nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--card);border-top:1px solid var(--line);display:flex;height:64px;z-index:20;}
+nav button{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--mut2);font-size:11px;cursor:pointer;padding:0;}
+nav button.on{color:var(--blue);}nav button svg{width:22px;height:22px;}
+.fab{position:fixed;bottom:78px;left:50%;transform:translateX(calc(-50% + 150px));background:var(--blue);color:#fff;border:none;width:52px;height:52px;border-radius:50%;font-size:26px;box-shadow:0 4px 14px rgba(46,117,182,.4);z-index:21;cursor:pointer;}
+.modal{position:fixed;inset:0;background:rgba(20,28,42,.5);z-index:30;display:none;align-items:flex-end;justify-content:center;}
+.modal.on{display:flex;}
+.sheet{background:var(--card);width:100%;max-width:480px;border-radius:18px 18px 0 0;padding:20px 18px 28px;max-height:88vh;overflow:auto;}
+.sheet h2{font-size:17px;font-weight:600;margin-bottom:4px;}
+.sheet p.hint{font-size:12px;color:var(--mut);margin-bottom:16px;line-height:1.5;}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:22px;text-align:center;color:var(--mut);font-size:13px;margin-bottom:16px;cursor:pointer;}
+.btns{display:flex;gap:10px;margin-top:18px;}
+.btns button{flex:1;padding:13px;border-radius:11px;font-size:14px;font-weight:600;border:none;cursor:pointer;}
+.btn-p{background:var(--blue);color:#fff;}.btn-s{background:#EDF0F5;color:var(--txt);}
+.note{font-size:11px;color:var(--mut2);text-align:center;margin-top:14px;line-height:1.5;}
+canvas{max-width:100%;}
+.bigbtn{display:flex;align-items:center;gap:10px;width:100%;padding:14px;border:1px solid var(--line);background:var(--card);border-radius:12px;font-size:14px;cursor:pointer;margin-bottom:10px;text-align:left;color:var(--txt);}
+.bigbtn b{font-weight:600;}.bigbtn small{display:block;color:var(--mut);font-size:11px;margin-top:2px;}
+.bigbtn .ic{width:36px;height:36px;border-radius:9px;background:#E6EEF8;color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;}
+.msect{font-size:12px;color:var(--mut);font-weight:600;margin:18px 0 8px;}
+.badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;margin-left:6px;}
+.badge.mgr{background:#E1F0E9;color:#0F6E56;}.badge.view{background:#E6EEF8;color:#185FA5;}
+.mrow{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px;}
+.mrow:last-child{border-bottom:none;}
+.mrow .act{display:flex;gap:8px;}
+.mrow .act button{border:none;background:#EDF0F5;color:var(--txt);width:34px;height:34px;border-radius:9px;font-size:15px;cursor:pointer;}
+.mrow .act button.del{background:#FBE9E9;color:var(--red);}
+#login{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px;}
+#login .box{width:100%;max-width:360px;}
+#login .logo{text-align:center;margin-bottom:22px;}
+#login .logo .b1{color:var(--navy);font-size:22px;font-weight:700;}
+#login .logo .b2{color:var(--mut);font-size:13px;margin-top:2px;}
+#login label{font-size:12px;color:var(--mut);display:block;margin:12px 0 4px;}
+#login input{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;}
+#login button{width:100%;background:var(--blue);color:#fff;border:none;border-radius:11px;padding:13px;font-size:15px;font-weight:600;margin-top:18px;cursor:pointer;}
+#login .err{color:var(--red);font-size:13px;text-align:center;margin-top:12px;min-height:18px;}
+.hidden{display:none!important;}
+@media (min-width:860px){
+  body{background:var(--bg);}
+  #app{max-width:1040px;min-height:auto;margin:22px auto;border:1px solid var(--line);border-radius:16px;background:var(--card);display:flex;flex-direction:column;}
+  header{order:1;border-radius:16px 16px 0 0;}
+  nav{order:2;position:static;transform:none;left:auto;width:100%;max-width:none;height:auto;border-top:none;border-bottom:1px solid var(--line);justify-content:center;gap:10px;padding:8px;}
+  nav button{flex:0 0 auto;flex-direction:row;gap:8px;padding:10px 20px;font-size:14px;border-radius:10px;}
+  nav button.on{background:#E6EEF8;}
+  nav button svg{width:18px;height:18px;}
+  main{order:3;padding:26px 30px 34px;}
+  .fab{order:4;position:fixed;left:auto;right:30px;bottom:30px;transform:none;width:56px;height:56px;}
+  h1{font-size:22px;margin-bottom:18px;}
+  .kpi{padding:20px;}
+  .kpi .big{font-size:30px;}
+  .row2{grid-template-columns:1fr 1fr;gap:16px;}
+  .row3{grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  .card{padding:18px 20px;}
+  .sect{font-size:14px;margin:24px 0 10px;}
+  .modal{align-items:center;}
+  .sheet{max-width:560px;border-radius:18px;max-height:86vh;}
+}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="box">
+    <div class="logo"><div class="b1">Recursos Humanos</div><div class="b2">Grupo Apex · Folha de pagamento</div></div>
+    <label>E-mail</label><input id="li_email" type="email" autocomplete="username" placeholder="seu@apexengenharia.com.br">
+    <label>Senha</label><input id="li_pass" type="password" autocomplete="current-password" placeholder="••••••••">
+    <button onclick="doLogin()">Entrar</button>
+    <div class="err" id="li_err"></div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header>
+    <div class="topbar">
+      <div><div class="brand">GRUPO APEX · RECURSOS HUMANOS</div><div class="who" id="who"></div></div>
+      <button class="menu" onclick="openMenu()" aria-label="Menu">&#9776;</button>
+    </div>
+    <div class="navdate">
+      <button class="arrow" id="prev" onclick="step(-1)" aria-label="Anterior">&#9664;</button>
+      <select id="mesSel" onchange="selectMes(this.value)"></select>
+      <button class="arrow" id="next" onclick="step(1)" aria-label="Próximo">&#9654;</button>
+    </div>
+  </header>
+  <main id="main"></main>
+  <button class="fab hidden" id="fab" onclick="openUpload()" aria-label="Carregar folha">+</button>
+  <nav id="nav">
+    <button data-t="painel" class="on" onclick="go('painel')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Painel</button>
+    <button data-t="comparativo" onclick="go('comparativo')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Comparativo</button>
+    <button data-t="obra" onclick="go('obra')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/></svg>Obras</button>
+    <button data-t="equipe" onclick="go('equipe')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2 21c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 21c0-3 2-4.5 4.5-4.5"/></svg>Equipe</button>
+  </nav>
+</div>
+
+<div class="modal" id="upload"><div class="sheet">
+  <h2>Carregar folha do mês</h2>
+  <p class="hint">Selecione um ou vários XLS analíticos (.xls/.xlsx) do sistema do escritório. Os arquivos são processados aqui no navegador e enviados ao Supabase.</p>
+  <div class="drop" id="drop" onclick="document.getElementById('xlsfile').click()"><div id="dropTxt">Toque para escolher arquivos XLS<br><span style="font-size:11px;color:var(--mut2)">Múltiplos arquivos suportados</span></div></div>
+  <input type="file" id="xlsfile" accept=".xlsx,.xls" multiple style="display:none" onchange="onUpload(event)">
+  <div id="uploadStatus"></div>
+  <div class="btns"><button class="btn-s" onclick="closeUpload()">Fechar</button></div>
+</div></div>
+
+<div class="modal" id="menu"><div class="sheet">
+  <h2>Configurações</h2>
+  <p class="hint">Backup, exportações e gestão da conta.</p>
+  <div class="msect">CONTA</div>
+  <div id="menuWho" class="card" style="margin-bottom:14px;"></div>
+  <button class="bigbtn" onclick="exportarPDF()"><span class="ic">&#128196;</span><span><b>Exportar PDF do painel</b><small>Gera um PDF com os KPIs e tabelas do mês atual</small></span></button>
+  <button class="bigbtn" onclick="doLogout()"><span class="ic">&#8617;</span><span><b>Sair</b><small>Encerra a sessão neste dispositivo</small></span></button>
+  <div class="note">Apex Engenharia · v0.1</div>
+</div></div>
+
+<script>
+// ===== CONFIG =====
+const SB_URL  = 'https://lthoecbhepjhjftvzhcc.supabase.co';
+const SB_ANON = 'sb_publishable_6sVFdxk55-eX_wzgDOOb9Q_b4Qng_bt';
+const MANAGER_EMAIL = 'eduardo@apexengenharia.com.br';
+
+const sb = supabase.createClient(SB_URL, SB_ANON, { db: { schema: 'apex_fopag' } });
+
+// ===== STATE =====
+let TAB = 'painel';
+let USER = null;
+let IS_MANAGER = false;
+let MESES = [];
+let MES = null;
+let DATA = { folha: [], empresas: [], obras: [], cargos: [], deps: [], param: [] };
+let CHARTS = {};
+
+// ===== HELPERS =====
+const $ = s => document.querySelector(s);
+const fmt = {
+  brl: v => 'R$ ' + Math.round(v).toLocaleString('pt-BR'),
+  brlk: v => 'R$ ' + (Math.round(v/1000)).toLocaleString('pt-BR') + 'k',
+  pct: v => (v*100).toFixed(1) + '%',
+  pp: v => (v*100>=0?'+':'') + (v*100).toFixed(1) + ' p.p.',
+  num: v => Math.round(v).toLocaleString('pt-BR'),
+  delta: (d, fmttype) => {
+    const sign = d >= 0 ? '+' : '−';
+    if (fmttype === 'brl') return sign + 'R$ ' + Math.abs(Math.round(d)).toLocaleString('pt-BR');
+    if (fmttype === 'pct') return (d*100>=0?'+':'') + (d*100).toFixed(1) + 'pp';
+    return sign + Math.abs(Math.round(d)).toLocaleString('pt-BR');
+  }
+};
+function destroyCharts(){ for (const k in CHARTS){ try{ CHARTS[k].destroy(); } catch(e){} } CHARTS={}; }
+function mesLabel(m){ // 2026-05 -> "Maio/2026"
+  if(!m) return '—';
+  const [y, mm] = m.split('-');
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return meses[parseInt(mm,10)-1] + '/' + y;
+}
+
+// ===== AUTH =====
+async function doLogin(){
+  const email = $('#li_email').value.trim().toLowerCase();
+  const pass = $('#li_pass').value;
+  if (!email || !pass) { $('#li_err').textContent = 'Preencha e-mail e senha.'; return; }
+  $('#li_err').textContent = 'Entrando…';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) { $('#li_err').textContent = error.message || 'Não foi possível entrar.'; return; }
+  await onSession(data.session);
+}
+async function doLogout(){ await sb.auth.signOut(); location.reload(); }
+async function onSession(sess){
+  if (!sess) { $('#login').classList.remove('hidden'); $('#app').classList.add('hidden'); return; }
+  USER = sess.user;
+  IS_MANAGER = (USER.email || '').toLowerCase() === MANAGER_EMAIL.toLowerCase();
+  $('#login').classList.add('hidden');
+  $('#app').classList.remove('hidden');
+  $('#who').innerHTML = USER.email + '<span class="badge ' + (IS_MANAGER?'mgr':'view') + '">' + (IS_MANAGER?'Manager':'Sócio') + '</span>';
+  $('#menuWho').innerHTML = '<b>' + USER.email + '</b><br><small style="color:var(--mut)">' + (IS_MANAGER?'Acesso de manager (pode gravar)':'Acesso de leitura') + '</small>';
+  if (IS_MANAGER) $('#fab').classList.remove('hidden'); else $('#fab').classList.add('hidden');
+  await loadData();
+  render();
+}
+
+// ===== DATA =====
+async function loadData(){
+  try {
+    const [emp, obr, car, dep, par] = await Promise.all([
+      sb.from('empresas').select('*'),
+      sb.from('obras').select('*'),
+      sb.from('cargos').select('*'),
+      sb.from('departamentos').select('*'),
+      sb.from('parametros').select('*'),
+    ]);
+    DATA.empresas = emp.data || [];
+    DATA.obras = obr.data || [];
+    DATA.cargos = car.data || [];
+    DATA.deps = dep.data || [];
+    DATA.param = par.data || [];
+    // lista de meses únicos
+    const mes = await sb.from('folha_mensal').select('mes_ref');
+    MESES = [...new Set((mes.data||[]).map(r=>r.mes_ref))].sort().reverse();
+    if (!MES) MES = MESES[0] || null;
+    fillMesSelect();
+    if (MES) await loadMes(MES);
+  } catch (e) { console.error(e); }
+}
+async function loadMes(m){
+  const r = await sb.from('folha_mensal').select('*').eq('mes_ref', m);
+  DATA.folha = r.data || [];
+}
+function fillMesSelect(){
+  const sel = $('#mesSel');
+  sel.innerHTML = MESES.map(m => `<option value="${m}" ${m===MES?'selected':''}>${mesLabel(m)}</option>`).join('');
+  $('#prev').disabled = MESES.indexOf(MES) >= MESES.length - 1;
+  $('#next').disabled = MESES.indexOf(MES) <= 0;
+}
+async function selectMes(m){ MES = m; await loadMes(m); render(); }
+async function step(d){
+  const i = MESES.indexOf(MES);
+  const j = i - d;
+  if (j < 0 || j >= MESES.length) return;
+  MES = MESES[j];
+  fillMesSelect();
+  await loadMes(MES);
+  render();
+}
+
+// ===== KPIs =====
+const INATIVOS = new Set(['Doente','Licenciado','Em','Demitido']);
+function custoEncargos(rows){
+  let s = 0;
+  for (const r of rows){
+    const obra = String(r.cod_obra||'');
+    const isAdm = obra === '1AD';
+    const p = +r.proventos_total || 0;
+    s += p * (1 + (isAdm ? 0.30 : 0.33));
+  }
+  return s;
+}
+function kpisDoMes(rows){
+  const head = rows.length;
+  const prov = rows.reduce((a,r)=>a+(+r.proventos_total||0), 0);
+  const enc = custoEncargos(rows);
+  const inat = rows.filter(r => INATIVOS.has(r.situacao)).length;
+  const med = head ? prov / head : 0;
+  const hoje = new Date();
+  const tempo = (() => {
+    let arr=[];
+    for (const r of rows){
+      if (!r.dt_admissao) continue;
+      const d = new Date(r.dt_admissao);
+      if (isNaN(d)) continue;
+      arr.push((hoje - d) / (365.25*86400000));
+    }
+    return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+  })();
+  return { head, prov, enc, inat, pctInat: head?inat/head:0, med, tempo };
+}
+function turnover(curr, prev){
+  if (!curr.length) return 0;
+  const setC = new Set(curr.map(r=>r.cod_empresa+'|'+r.matricula));
+  const setP = new Set(prev.map(r=>r.cod_empresa+'|'+r.matricula));
+  let adm=0, dem=0;
+  for (const k of setC) if (!setP.has(k)) adm++;
+  for (const k of setP) if (!setC.has(k)) dem++;
+  const hm = (curr.length + prev.length) / 2;
+  return hm ? (adm+dem)/2/hm : 0;
+}
+async function fetchMes(m){
+  const r = await sb.from('folha_mensal').select('*').eq('mes_ref', m);
+  return r.data || [];
+}
+
+// ===== RENDER =====
+function render(){
+  destroyCharts();
+  // marca aba ativa
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.t === TAB));
+  if (!MES) { $('#main').innerHTML = '<div class="empty">Nenhum mês carregado.<br>' + (IS_MANAGER?'Toque em <b>+</b> pra carregar a primeira folha.':'Solicite ao manager.') + '</div>'; return; }
+  if (TAB === 'painel') renderPainel();
+  else if (TAB === 'comparativo') renderComparativo();
+  else if (TAB === 'obra') renderObra();
+  else if (TAB === 'equipe') renderEquipe();
+}
+function go(t){ TAB = t; render(); window.scrollTo(0,0); }
+
+// ===== PAINEL =====
+function renderPainel(){
+  const k = kpisDoMes(DATA.folha);
+  const html = `
+    <h1>Painel · ${mesLabel(MES)}</h1>
+    <div class="row3">
+      <div class="kpi"><div class="lbl">Pessoas</div><div class="big">${fmt.num(k.head)}</div></div>
+      <div class="kpi"><div class="lbl">Folha bruta</div><div class="big">${fmt.brlk(k.prov)}</div></div>
+      <div class="kpi"><div class="lbl">C/ encargos</div><div class="big">${fmt.brlk(k.enc)}</div></div>
+    </div>
+    <div class="row3">
+      <div class="kpi"><div class="lbl">% Inativos</div><div class="big" style="color:${k.pctInat>0.15?'var(--red)':'var(--txt)'}">${fmt.pct(k.pctInat)}</div></div>
+      <div class="kpi"><div class="lbl">Custo médio</div><div class="big">${fmt.brl(k.med)}</div></div>
+      <div class="kpi"><div class="lbl">Tempo casa</div><div class="big">${k.tempo.toFixed(1)} <span style="font-size:14px;color:var(--mut)">anos</span></div></div>
+    </div>
+    <div class="sect">POR EMPRESA</div>
+    <div class="card">${renderPorEmpresa(DATA.folha)}</div>
+    <div class="sect">TOP CARGOS POR CUSTO</div>
+    <div class="card">${renderTopCargos(DATA.folha, 8)}</div>
+    <div class="sect">COMPOSIÇÃO</div>
+    <div class="card"><canvas id="sitChart" height="200"></canvas></div>
+  `;
+  $('#main').innerHTML = html;
+  drawSituacaoChart();
+}
+function renderPorEmpresa(rows){
+  const map = {};
+  for (const r of rows){
+    if (!map[r.cod_empresa]) map[r.cod_empresa] = { hc:0, prov:0 };
+    map[r.cod_empresa].hc++;
+    map[r.cod_empresa].prov += (+r.proventos_total||0);
+  }
+  const arr = Object.entries(map).map(([cod,v]) => ({
+    cod, hc: v.hc, prov: v.prov,
+    nome: (DATA.empresas.find(e=>e.cod_empresa===cod)||{}).nome_curto || cod
+  })).sort((a,b)=>b.prov-a.prov);
+  if (!arr.length) return '<div class="empty">Sem dados</div>';
+  const max = Math.max(...arr.map(x=>x.prov));
+  return arr.map(e => `
+    <div style="margin-bottom:10px">
+      <div class="bar-lbl"><b>${e.nome}</b><span>${e.hc} pessoas · ${fmt.brlk(e.prov)}</span></div>
+      <div class="bar" style="background:linear-gradient(90deg,var(--blue) 0%,var(--blue) ${(e.prov/max*100).toFixed(0)}%,#EDF0F5 ${(e.prov/max*100).toFixed(0)}%);"></div>
+    </div>`).join('');
+}
+function renderTopCargos(rows, n){
+  const map = {};
+  for (const r of rows){
+    const c = r.cod_cargo;
+    if (!c) continue;
+    if (!map[c]) map[c] = { qtd:0, prov:0 };
+    map[c].qtd++;
+    map[c].prov += (+r.proventos_total||0);
+  }
+  const arr = Object.entries(map).map(([c,v]) => ({
+    cod: c,
+    nome: ((DATA.cargos.find(x=>x.cod_cargo===c)||{}).nome_cargo) || ('cargo '+c),
+    qtd: v.qtd,
+    prov: v.prov,
+  })).sort((a,b)=>b.prov-a.prov).slice(0, n);
+  if (!arr.length) return '<div class="empty">Sem dados</div>';
+  const max = arr[0].prov;
+  return arr.map(c => `
+    <div style="margin-bottom:9px">
+      <div class="bar-lbl"><b>${c.nome}</b><span>${c.qtd} · ${fmt.brlk(c.prov)}</span></div>
+      <div class="bar" style="background:linear-gradient(90deg,var(--green) 0%,var(--green) ${(c.prov/max*100).toFixed(0)}%,#EDF0F5 ${(c.prov/max*100).toFixed(0)}%);"></div>
+    </div>`).join('');
+}
+function drawSituacaoChart(){
+  const map = {};
+  for (const r of DATA.folha){ map[r.situacao] = (map[r.situacao]||0)+1; }
+  const labels = Object.keys(map);
+  const values = Object.values(map);
+  const colors = labels.map(l => l==='Ativo' ? '#1D9E75' : (l==='Doente'?'#E24B4A':(l==='Licenciado'?'#BA7517':'#9AA4B2')));
+  const ctx = $('#sitChart');
+  if (!ctx) return;
+  CHARTS.sit = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0 }] },
+    options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }, cutout: '60%' }
+  });
+}
+
+// ===== COMPARATIVO =====
+let CMP_PREV = null;
+async function renderComparativo(){
+  // Default: mes anterior
+  if (!CMP_PREV) CMP_PREV = MESES[MESES.indexOf(MES)+1] || MESES[1] || null;
+  $('#main').innerHTML = '<h1>Comparativo</h1><div class="empty">Carregando…</div>';
+  if (!CMP_PREV || CMP_PREV === MES){
+    $('#main').innerHTML = '<h1>Comparativo</h1><div class="empty">Selecione 2 meses diferentes (mês atual ≠ mês de comparação).</div>';
+    return;
+  }
+  const prev = await fetchMes(CMP_PREV);
+  const curr = DATA.folha;
+  const kc = kpisDoMes(curr), kp = kpisDoMes(prev);
+  const tn = turnover(curr, prev);
+  const pctInatMax = (DATA.param.find(p=>p.parametro==='meta_inativos_max_pct')||{valor:0.15}).valor;
+  const turnMax = (DATA.param.find(p=>p.parametro==='meta_turnover_max_pct')||{valor:0.05}).valor;
+
+  const metrics = [
+    {l:'Pessoas', a:kc.head, b:kp.head, fmt:'num', dir:'up'},
+    {l:'Folha bruta', a:kc.prov, b:kp.prov, fmt:'brl', dir:'flat'},
+    {l:'Custo c/ encargos', a:kc.enc, b:kp.enc, fmt:'brl', dir:'flat'},
+    {l:'% Inativos', a:kc.pctInat, b:kp.pctInat, fmt:'pct', dir:'down'},
+    {l:'Custo médio', a:kc.med, b:kp.med, fmt:'brl', dir:'flat'},
+    {l:'Turnover', a:tn, b:0, fmt:'pct', dir:'down'},
+  ];
+
+  // movimentações
+  const setP = new Set(prev.map(r=>r.cod_empresa+'|'+r.matricula));
+  const setC = new Set(curr.map(r=>r.cod_empresa+'|'+r.matricula));
+  const novos = curr.filter(r => !setP.has(r.cod_empresa+'|'+r.matricula));
+  const saidos = prev.filter(r => !setC.has(r.cod_empresa+'|'+r.matricula));
+
+  // alertas
+  const alerts = [];
+  if (kc.pctInat > pctInatMax) alerts.push({n:'r', t:'Inativos acima da meta', m: `${fmt.pct(kc.pctInat)} de inativos (meta ≤ ${fmt.pct(pctInatMax)}).`});
+  if (tn > turnMax) alerts.push({n:'y', t:'Turnover acima da meta', m:`Turnover ${fmt.pct(tn)} (meta ≤ ${fmt.pct(turnMax)}).`});
+
+  const cardHtml = (m) => {
+    const d = m.a - m.b;
+    const dpct = m.b ? (d/m.b) : 0;
+    const vrep = m.fmt==='brl' ? fmt.brlk(m.a) : (m.fmt==='pct' ? fmt.pct(m.a) : fmt.num(m.a));
+    let dCls = 'flat';
+    if (d !== 0){
+      const positive = d > 0;
+      if (m.dir === 'down') dCls = positive ? 'down' : 'up';
+      else if (m.dir === 'up') dCls = positive ? 'up' : 'down';
+      else dCls = positive ? 'down' : 'up';
+    }
+    const ds = m.b === 0 ? '' : `<div class="delta ${dCls}">${dpct>=0?'▲':'▼'} ${fmt.pp(dpct)}</div>`;
+    return `<div class="kpi"><div class="lbl">${m.l}</div><div class="big sm">${vrep}</div>${ds}</div>`;
+  };
+
+  const html = `
+    <h1>Comparativo</h1>
+    <div class="card">
+      <div style="font-size:12px;color:var(--mut);margin-bottom:6px">COMPARANDO</div>
+      <select id="cmpPrev" onchange="cmpSetPrev(this.value)" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:9px;font-size:14px;">
+        ${MESES.map(m => `<option value="${m}" ${m===CMP_PREV?'selected':''}>${m===MES?'(atual) ':''}${mesLabel(m)}</option>`).join('')}
+      </select>
+      <div style="font-size:12px;color:var(--mut);margin-top:8px">vs. <b>${mesLabel(MES)}</b> (mês atual no topo)</div>
+    </div>
+    ${alerts.length ? '<div class="sect">ALERTAS</div>' + alerts.map(a=>`<div class="alert ${a.n}"><span class="ic">${a.n==='r'?'🔴':'🟡'}</span><div><div class="t">${a.t}</div><div class="m">${a.m}</div></div></div>`).join('') : ''}
+    <div class="sect">VARIAÇÕES</div>
+    <div class="row2">${metrics.map(cardHtml).join('')}</div>
+    <div class="sect">ADMISSÕES (${novos.length})</div>
+    <div class="card">${novos.length ? novos.slice(0,30).map(rowMov).join('') : '<div class="empty">Nenhuma admissão.</div>'}</div>
+    <div class="sect">DEMISSÕES (${saidos.length})</div>
+    <div class="card">${saidos.length ? saidos.slice(0,30).map(rowMov).join('') : '<div class="empty">Nenhuma demissão.</div>'}</div>
+    <div class="sect">EVOLUÇÃO</div>
+    <div class="card"><canvas id="evChart" height="180"></canvas></div>
+  `;
+  $('#main').innerHTML = html;
+  drawEvolucao();
+}
+function cmpSetPrev(m){ CMP_PREV = m; renderComparativo(); }
+function rowMov(r){
+  const emp = (DATA.empresas.find(e=>e.cod_empresa===r.cod_empresa)||{}).nome_curto || r.cod_empresa;
+  const cargo = (DATA.cargos.find(c=>c.cod_cargo===r.cod_cargo)||{}).nome_cargo || ('cargo '+(r.cod_cargo||'?'));
+  return `<div class="list-it"><div class="lt"><div class="n">${r.nome||r.matricula}</div><div class="s">${emp} · ${cargo}</div></div><div class="r">${fmt.brl(+r.salario_base||0)}<small>${r.dt_admissao||r.dt_demissao||''}</small></div></div>`;
+}
+async function drawEvolucao(){
+  // pega últimos 6 meses
+  const meses6 = MESES.slice(0,6).reverse();
+  const series = await Promise.all(meses6.map(async m => {
+    const rows = await fetchMes(m);
+    return { m, k: kpisDoMes(rows) };
+  }));
+  const labels = series.map(s => mesLabel(s.m));
+  const ctx = $('#evChart');
+  if (!ctx) return;
+  CHARTS.ev = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Folha bruta (R$ k)', data: series.map(s => s.k.prov/1000), borderColor: '#2E75B6', tension: 0.3, pointRadius: 3 },
+        { label: 'C/ encargos (R$ k)', data: series.map(s => s.k.enc/1000), borderColor: '#1F3864', tension: 0.3, pointRadius: 3 },
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }, scales: { y: { beginAtZero: false } } }
+  });
+}
+
+// ===== OBRA =====
+let OBRA_SEL = null;
+function renderObra(){
+  if (!OBRA_SEL) OBRA_SEL = (DATA.obras[0]||{}).cod_obra || null;
+  // monta dados consolidados: cod_obra (direto) + departamentos vinculados
+  const obrasList = DATA.obras.map(o => ({...o}));
+  const html = `
+    <h1>Visão Obra</h1>
+    <div class="toggle">${obrasList.map(o => `<span class="${o.cod_obra===OBRA_SEL?'on':''}" onclick="setObra('${o.cod_obra}')">${o.apelido||o.cod_obra}</span>`).join('')}</div>
+    <div id="obraBody"></div>`;
+  $('#main').innerHTML = html;
+  drawObra();
+}
+function setObra(c){ OBRA_SEL = c; renderObra(); }
+function drawObra(){
+  // pessoas com cod_obra === sel OU departamento vinculado a essa obra
+  const depsVinculados = new Set(DATA.deps.filter(d => d.cod_obra_vinculada === OBRA_SEL).map(d => d.cod_empresa+'|'+d.cod_departamento));
+  const rows = DATA.folha.filter(r => r.cod_obra === OBRA_SEL || depsVinculados.has(r.cod_empresa+'|'+r.cod_departamento));
+  if (!rows.length){
+    $('#obraBody').innerHTML = '<div class="empty">Sem pessoas alocadas a essa obra no mês.</div>';
+    return;
+  }
+  const k = kpisDoMes(rows);
+  const porEmp = {};
+  for (const r of rows){
+    if (!porEmp[r.cod_empresa]) porEmp[r.cod_empresa] = 0;
+    porEmp[r.cod_empresa]++;
+  }
+  const porEmpHtml = Object.entries(porEmp).map(([c,n]) => {
+    const nome = (DATA.empresas.find(e=>e.cod_empresa===c)||{}).nome_curto || c;
+    return `<div class="line"><span>${nome}</span><span class="v">${n} pessoas</span></div>`;
+  }).join('');
+  const porNivel = {};
+  for (const r of rows){
+    const car = DATA.cargos.find(x=>x.cod_cargo===r.cod_cargo);
+    const nv = (car||{}).nivel || '(sem nível)';
+    porNivel[nv] = (porNivel[nv]||0)+1;
+  }
+  const ordem = ['Aprendiz','Servente','Meio Oficial','Oficial','Especializado','Apoio','Encarregado','Contramestre','Admin','Diretoria'];
+  const nvSorted = Object.entries(porNivel).sort((a,b)=> (ordem.indexOf(a[0])+99) - (ordem.indexOf(b[0])+99));
+  const max = Math.max(...nvSorted.map(x=>x[1]));
+  const piramide = nvSorted.map(([nv,n]) => `
+    <div style="margin-bottom:8px"><div class="bar-lbl"><b>${nv}</b><span>${n}</span></div>
+    <div class="bar" style="background:linear-gradient(90deg,var(--blue) 0%,var(--blue) ${(n/max*100).toFixed(0)}%,#EDF0F5 ${(n/max*100).toFixed(0)}%);"></div></div>`).join('');
+  $('#obraBody').innerHTML = `
+    <div class="row3">
+      <div class="kpi"><div class="lbl">Pessoas</div><div class="big">${k.head}</div></div>
+      <div class="kpi"><div class="lbl">Folha</div><div class="big">${fmt.brlk(k.prov)}</div></div>
+      <div class="kpi"><div class="lbl">C/ enc.</div><div class="big">${fmt.brlk(k.enc)}</div></div>
+    </div>
+    <div class="sect">POR EMPRESA NESSA OBRA</div>
+    <div class="card">${porEmpHtml}</div>
+    <div class="sect">PIRÂMIDE HIERÁRQUICA</div>
+    <div class="card">${piramide}</div>
+    <div class="sect">PESSOAS (${rows.length})</div>
+    <div class="card">${rows.map(r => {
+      const emp = (DATA.empresas.find(e=>e.cod_empresa===r.cod_empresa)||{}).nome_curto || r.cod_empresa;
+      const cargo = (DATA.cargos.find(c=>c.cod_cargo===r.cod_cargo)||{}).nome_cargo || ('cargo '+(r.cod_cargo||'?'));
+      return `<div class="list-it"><div class="lt"><div class="n">${r.nome||r.matricula}</div><div class="s">${emp} · ${cargo} · ${r.situacao||''}</div></div><div class="r">${fmt.brl(+r.salario_base||0)}</div></div>`;
+    }).join('')}</div>`;
+}
+
+// ===== EQUIPE =====
+let EQ_FILTER = '';
+function renderEquipe(){
+  const f = EQ_FILTER.toLowerCase();
+  const rows = DATA.folha.filter(r => !f || (r.nome||'').toLowerCase().includes(f) || (r.matricula||'').toString().includes(f));
+  rows.sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+  const html = `
+    <h1>Equipe · ${rows.length}</h1>
+    <input id="eqf" oninput="eqSet(this.value)" placeholder="Buscar por nome ou matrícula…" value="${EQ_FILTER}" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;font-size:14px;margin-bottom:10px;">
+    <div class="card">${rows.length ? rows.slice(0,80).map(r => {
+      const emp = (DATA.empresas.find(e=>e.cod_empresa===r.cod_empresa)||{}).nome_curto || r.cod_empresa;
+      const cargo = (DATA.cargos.find(c=>c.cod_cargo===r.cod_cargo)||{}).nome_cargo || ('cargo '+(r.cod_cargo||'?'));
+      return `<div class="list-it"><div class="lt"><div class="n">${r.nome||r.matricula} <span style="color:var(--mut);font-weight:normal;font-size:11px">· ${r.matricula}</span></div><div class="s">${emp} · ${cargo} · <span style="color:${r.situacao==='Ativo'?'var(--green)':'var(--red)'}">${r.situacao||'?'}</span></div></div><div class="r">${fmt.brl(+r.salario_base||0)}<small>${r.dt_admissao||''}</small></div></div>`;
+    }).join('') + (rows.length>80?'<div class="empty">… mostrando 80 de '+rows.length+'. Filtre pra ver mais.</div>':'') : '<div class="empty">Nenhum funcionário encontrado.</div>'}</div>`;
+  $('#main').innerHTML = html;
+}
+function eqSet(v){ EQ_FILTER = v; renderEquipe(); }
+
+// ===== MENU / MODAIS =====
+function openMenu(){ $('#menu').classList.add('on'); }
+function openUpload(){ if(!IS_MANAGER) return; $('#upload').classList.add('on'); $('#uploadStatus').innerHTML=''; }
+function closeUpload(){ $('#upload').classList.remove('on'); }
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal')) e.target.classList.remove('on');
+});
+
+// ===== UPLOAD XLS (SheetJS) =====
+async function onUpload(ev){
+  const files = ev.target.files;
+  if (!files || !files.length) return;
+  const status = $('#uploadStatus');
+  status.innerHTML = '';
+  for (const f of files){
+    status.innerHTML += `<div class="line"><span>${f.name}</span><span class="v" id="st_${f.name.replace(/[^a-z0-9]/gi,'_')}">processando…</span></div>`;
+  }
+  for (const f of files){
+    const sid = 'st_' + f.name.replace(/[^a-z0-9]/gi,'_');
+    try {
+      const buf = await f.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array', cellDates: false });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const grid = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
+      const parsed = parseAnaliticoGrid(grid, f.name);
+      if (!parsed.empresa.cod_empresa || !parsed.mes_ref) throw new Error('Cabeçalho inválido.');
+      const res = await upsertFolha(parsed);
+      $('#'+sid).textContent = `✓ ${parsed.empresa.cod_empresa==='1'?'APEX':'JR6'} ${parsed.mes_ref} · ${parsed.funcionarios.length} pessoas`;
+      $('#'+sid).style.color = 'var(--green)';
+    } catch (e) {
+      $('#'+sid).textContent = '✗ ' + (e.message||'erro');
+      $('#'+sid).style.color = 'var(--red)';
+    }
+  }
+  await loadData();
+  if (MES) await loadMes(MES);
+  render();
+  status.innerHTML += '<div class="note">Pronto. Feche o painel pra ver as atualizações.</div>';
+}
+
+// parser XLS analítico — baseado no parser Python que já testamos
+function parseAnaliticoGrid(grid, fileName){
+  const MESES_PT = {JANEIRO:1,FEVEREIRO:2,MARCO:3,ABRIL:4,MAIO:5,JUNHO:6,JULHO:7,AGOSTO:8,SETEMBRO:9,OUTUBRO:10,NOVEMBRO:11,DEZEMBRO:12};
+  const strip = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase();
+  const cell = (r,c) => (grid[r] && grid[r][c] != null) ? grid[r][c] : '';
+  let mes_ref = null;
+  let empresa = {}, obra = {};
+  const funcStartRows = [];
+  for (let r = 0; r < grid.length; r++){
+    const row = grid[r] || [];
+    const text = row.map(x => String(x||'')).join(' ');
+    if (!mes_ref){
+      const m = strip(text).match(/FOLHA ANAL[ÍI]TICA\s*-\s*([A-Z]+)\s*\/\s*(\d{4})/);
+      if (m){
+        const mnome = strip(m[1]);
+        const mes = MESES_PT[mnome];
+        if (mes) mes_ref = m[2] + '-' + String(mes).padStart(2,'0');
+      }
+    }
+    if (row[0] === 'Empresa:'){
+      const cod = String(row[3]||'').replace(/\.0$/,'');
+      const razao = String(row[4]||'').trim();
+      const cnpj = (() => { for(let c=0;c<row.length;c++) if(row[c]==='CNPJ:') return String(row[c+1]||'').trim(); return ''; })();
+      empresa = { cod_empresa: cod, razao_social: razao, cnpj };
+    } else if (row[0] === 'Obra:'){
+      const cod = String(row[3]||'').trim();
+      const nome = String(row[4]||'').trim();
+      const cnpj_cno = (() => { for(let c=0;c<row.length;c++) if(row[c]==='CNPJ/CNO:') return String(row[c+1]||'').trim(); return ''; })();
+      obra = { cod_obra: cod, nome_obra: nome, cnpj_cno };
+    } else if (row[0] === 'Funcionário:'){
+      funcStartRows.push(r);
+    }
+  }
+  const funcionarios = [];
+  for (let i = 0; i < funcStartRows.length; i++){
+    const r0 = funcStartRows[i];
+    const rEnd = funcStartRows[i+1] || grid.length;
+    const f = parseBlock(grid, r0, rEnd, strip);
+    if (f) funcionarios.push(f);
+  }
+  return { mes_ref, empresa, obra, funcionarios, arquivo_origem: fileName };
+}
+function parseBlock(grid, r0, rEnd, strip){
+  const row0 = grid[r0] || [];
+  let matricula = '';
+  for (let c=1;c<row0.length;c++) if (row0[c] && c >= 1) { matricula = String(row0[c]).replace(/\.0$/,''); break; }
+  let nome = '';
+  let lastIdx = -1;
+  for (let c=0;c<row0.length;c++) if (String(row0[c]||'')===matricula) { lastIdx=c; break; }
+  for (let c=lastIdx+1;c<row0.length;c++) if (row0[c]) { nome = String(row0[c]).trim(); break; }
+  let situacao = 'Ativo';
+  for (const v of row0){
+    if (v && String(v).includes('Situação:')){
+      const m = String(v).match(/Situa[cç][aã]o:\s*\d+\s*(\w+)/);
+      if (m) situacao = m[1];
+      break;
+    }
+  }
+  if (!matricula || !nome) return null;
+  const f = { matricula, nome, situacao, cpf:null, pis:null, nascimento:null,
+              dt_admissao:null, dt_demissao:null,
+              cod_departamento:null, nome_departamento:'',
+              cod_cargo:null, nome_cargo:'', cod_funcao:null, nome_funcao:'',
+              salario_base:0, proventos_total:0, descontos_total:0, liquido:0,
+              base_inss:0, base_fgts:0, fgts:0, base_irrf:0, dependentes_ir:0,
+              cod_obra:null, eventos:[] };
+  for (let r=r0+1;r<rEnd;r++){
+    const row = grid[r] || [];
+    const txt = row.map(x=>String(x||'')).join(' ');
+    if (row[0] === 'Nascimento:'){
+      f.nascimento = parseDate(row[3]);
+      const after = (lab) => { for(let c=0;c<row.length;c++) if(row[c]===lab) return row[c+1]||row[c+2]||''; return ''; };
+      f.cpf = onlyDigits(after('CPF:'));
+      f.pis = onlyDigits(after('PIS:'));
+      const dep = after('Dependente IR:');
+      f.dependentes_ir = parseInt(dep||'0',10) || 0;
+    } else if (row[0] === 'Dt. admissão:'){
+      f.dt_admissao = parseDate(row[3]);
+      let demIdx=-1, depIdx=-1;
+      for (let c=0;c<row.length;c++){ if(row[c]==='Dt. demissão:') demIdx=c; if(row[c]==='Departamento:') depIdx=c; }
+      if (depIdx>0){
+        // cod_dep = última célula numérica entre dem e dep
+        for (let c=depIdx-1;c>demIdx;c--){
+          const v = row[c];
+          if (v != null && !isNaN(+String(v).replace(/\./g,''))){
+            f.cod_departamento = String(v).replace(/\.0$/,'');
+            break;
+          }
+        }
+        // nome_dep = próximo não vazio após depIdx
+        for (let c=depIdx+1;c<row.length;c++) if (row[c]) { f.nome_departamento = String(row[c]).trim(); break; }
+      }
+    } else if (row[0] === 'Salário:'){
+      f.salario_base = parseNum(row[3]);
+      let cargoIdx=-1, funcaoIdx=-1;
+      for (let c=0;c<row.length;c++){ if(row[c]==='Cargo:') cargoIdx=c; if(row[c]==='Função:') funcaoIdx=c; }
+      if (cargoIdx>0){
+        for (let c=cargoIdx+1;c<row.length;c++) if(row[c]) { f.nome_cargo = String(row[c]).trim(); break; }
+        for (let c=cargoIdx-1;c>0;c--){
+          const v=row[c];
+          if (v != null && !isNaN(+String(v).replace(/\./g,'')) && +v !== +row[3]){ f.cod_cargo = String(v).replace(/\.0$/,''); break; }
+        }
+      }
+      if (funcaoIdx>0){
+        for (let c=funcaoIdx+1;c<row.length;c++) if(row[c]) { f.nome_funcao = String(row[c]).trim(); break; }
+      }
+    } else if (txt.includes('Proventos:') && txt.includes('Descontos:')){
+      f.proventos_total = parseNum(findAfter(row, 'Proventos:'));
+      f.descontos_total = parseNum(findAfter(row, 'Descontos:'));
+    } else if (txt.includes('LÍQUIDO:')){
+      f.liquido = parseNum(findAfter(row, 'LÍQUIDO:'));
+    } else if (txt.includes('Base INSS:') && txt.includes('Base FGTS:')){
+      f.base_inss = parseNum(findAfter(row, 'Base INSS:'));
+      f.base_fgts = parseNum(findAfter(row, 'Base FGTS:'));
+      f.fgts = parseNum(findAfter(row, 'FGTS:'));
+    } else if (txt.includes('Base IRRF:')){
+      f.base_irrf = parseNum(findAfter(row, 'Base IRRF:'));
+    }
+  }
+  // obra default: cabeçalho global é configurado depois no upsert
+  return f;
+}
+function findAfter(row, label){ for(let c=0;c<row.length;c++) if(row[c]===label){ for(let k=c+1;k<row.length;k++) if(row[k]) return row[k]; } return null; }
+function parseNum(v){ if(v==null) return 0; if(typeof v==='number') return v; const s=String(v).replace(/\./g,'').replace(',','.').replace(/[^\d.\-]/g,''); const n=parseFloat(s); return isNaN(n)?0:n; }
+function parseDate(v){ if(!v) return null; if (v instanceof Date) return v.toISOString().split('T')[0];
+  const s = String(v).trim();
+  const m = s.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  if (m) return m[3]+'-'+m[2]+'-'+m[1];
+  return null;
+}
+function onlyDigits(v){ const s = String(v||'').replace(/\D/g,''); return s || null; }
+
+// ===== UPSERT NO SUPABASE =====
+async function upsertFolha(parsed){
+  const codEmp = parsed.empresa.cod_empresa;
+  const codObraHeader = (parsed.obra||{}).cod_obra || null;
+  // garantir empresa
+  await sb.from('empresas').upsert({ cod_empresa: codEmp, razao_social: parsed.empresa.razao_social, nome_curto: parsed.empresa.razao_social.slice(0,20), cnpj: parsed.empresa.cnpj }, { onConflict: 'cod_empresa', ignoreDuplicates: true });
+  if (codObraHeader){
+    await sb.from('obras').upsert({ cod_obra: codObraHeader, nome_obra: parsed.obra.nome_obra || codObraHeader, cnpj_cno: parsed.obra.cnpj_cno, empresa_responsavel: codEmp, status: 'Em execução' }, { onConflict: 'cod_obra', ignoreDuplicates: true });
+  }
+  // garantir cargos/deps novos
+  const cargosSet = {}, depsSet = {};
+  for (const f of parsed.funcionarios){
+    if (f.cod_cargo && !cargosSet[f.cod_cargo]) cargosSet[f.cod_cargo] = f.nome_cargo || f.cod_cargo;
+    if (f.cod_departamento && !depsSet[f.cod_departamento]) depsSet[f.cod_departamento] = f.nome_departamento || f.cod_departamento;
+  }
+  if (Object.keys(cargosSet).length){
+    await sb.from('cargos').upsert(Object.entries(cargosSet).map(([c,n]) => ({ cod_cargo: c, nome_cargo: n, nivel: 'Oficial', categoria: 'Operacional', demanda_aprendiz: false })), { onConflict: 'cod_cargo', ignoreDuplicates: true });
+  }
+  if (Object.keys(depsSet).length){
+    await sb.from('departamentos').upsert(Object.entries(depsSet).map(([c,n]) => ({ cod_empresa: codEmp, cod_departamento: c, nome_departamento: n, tipo: 'ADM' })), { onConflict: 'cod_empresa,cod_departamento', ignoreDuplicates: true });
+  }
+  const rows = parsed.funcionarios.map(f => ({
+    mes_ref: parsed.mes_ref,
+    cod_empresa: codEmp,
+    matricula: f.matricula,
+    nome: f.nome, cpf: f.cpf, pis: f.pis,
+    nascimento: f.nascimento, dt_admissao: f.dt_admissao, dt_demissao: f.dt_demissao,
+    situacao: f.situacao,
+    cod_departamento: f.cod_departamento,
+    cod_obra: f.cod_obra || codObraHeader,
+    cod_cargo: f.cod_cargo, cod_funcao: f.cod_funcao,
+    salario_base: f.salario_base, proventos_total: f.proventos_total,
+    descontos_total: f.descontos_total, liquido: f.liquido,
+    base_inss: f.base_inss, base_fgts: f.base_fgts, fgts: f.fgts, base_irrf: f.base_irrf,
+    dependentes_ir: f.dependentes_ir,
+    arquivo_origem: parsed.arquivo_origem,
+  }));
+  const res = await sb.from('folha_mensal').upsert(rows, { onConflict: 'mes_ref,cod_empresa,matricula' });
+  if (res.error) throw new Error(res.error.message);
+  return { rows: rows.length };
+}
+
+// ===== EXPORT PDF =====
+function exportarPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(16);
+  doc.text('Grupo Apex — Recursos Humanos', 14, 18);
+  doc.setFontSize(11);
+  doc.text('Painel · ' + mesLabel(MES), 14, 26);
+  doc.setFontSize(9);
+  doc.text('Gerado em ' + new Date().toLocaleString('pt-BR'), 14, 32);
+  const k = kpisDoMes(DATA.folha);
+  doc.autoTable({
+    startY: 40,
+    head: [['KPI','Valor']],
+    body: [
+      ['Pessoas', fmt.num(k.head)],
+      ['Folha bruta', fmt.brl(k.prov)],
+      ['Custo c/ encargos', fmt.brl(k.enc)],
+      ['% Inativos', fmt.pct(k.pctInat)],
+      ['Custo médio/pessoa', fmt.brl(k.med)],
+      ['Tempo médio de casa', k.tempo.toFixed(1) + ' anos'],
+    ],
+    styles: { fontSize: 10 }, headStyles: { fillColor: [31, 56, 100] },
+  });
+  // top cargos
+  const map = {};
+  for (const r of DATA.folha){ if(!r.cod_cargo) continue; if(!map[r.cod_cargo]) map[r.cod_cargo]={q:0,p:0}; map[r.cod_cargo].q++; map[r.cod_cargo].p+=+r.proventos_total||0; }
+  const top = Object.entries(map).map(([c,v])=>({cod:c, nome:(DATA.cargos.find(x=>x.cod_cargo===c)||{}).nome_cargo||c, q:v.q, p:v.p})).sort((a,b)=>b.p-a.p).slice(0,10);
+  doc.autoTable({
+    startY: doc.lastAutoTable.finalY + 8,
+    head: [['Cargo','Qtd','Folha bruta']],
+    body: top.map(t => [t.nome, t.q, fmt.brl(t.p)]),
+    styles: { fontSize: 9 }, headStyles: { fillColor: [31, 56, 100] },
+  });
+  doc.save(`apex-rh-${MES}.pdf`);
+}
+
+// ===== BOOT =====
+sb.auth.getSession().then(({data}) => onSession(data.session));
+sb.auth.onAuthStateChange((_e, sess) => { if (!sess) location.reload(); });
+</script>
+</body>
+</html>
