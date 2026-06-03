@@ -834,11 +834,13 @@ function parseFitGrid(grid, sheetName, fileName){
   const pgM = pgMonth > 12 ? 1 : pgMonth;
   const mesPag = pgYear + '-' + String(pgM).padStart(2,'0');
 
-  // Achar linha de header (col 4 = NOMES). Geralmente r3.
+  // Achar linha de header — varre as primeiras 12 linhas procurando "NOMES" em qualquer coluna.
   let headerRow = -1;
-  for (let r=0;r<Math.min(grid.length,10);r++){
+  for (let r=0;r<Math.min(grid.length,12);r++){
     const row = grid[r]||[];
-    if (row[3] && String(row[3]).toUpperCase().includes('NOME')) { headerRow = r; break; }
+    const hasNome = row.some(c => c!=null && String(c).toUpperCase().trim() === 'NOMES');
+    const hasObra = row.some(c => c!=null && String(c).toUpperCase().trim() === 'OBRA');
+    if (hasNome && hasObra) { headerRow = r; break; }
   }
   if (headerRow < 0) throw new Error("Cabeçalho não encontrado (col NOMES).");
 
@@ -895,7 +897,18 @@ async function onUploadFit(ev){
   try {
     const buf = await f.arrayBuffer();
     const wb = XLSX.read(buf, { type:'array', cellDates:false });
-    const sheetName = wb.SheetNames[0];
+    // Tenta casar nome do arquivo com nome de aba (ex: "Relatório MAR 2026" → aba "MAR-2026")
+    const filenameMatch = f.name.toUpperCase().match(/([A-Z]+)\s*[-_/ ]?\s*(\d{4})/);
+    let sheetName = wb.SheetNames[wb.SheetNames.length-1]; // padrão: última (mais recente)
+    if (filenameMatch){
+      const fnMonth = filenameMatch[1].replace('Ç','C').slice(0,3);
+      const fnYear = filenameMatch[2];
+      const hit = wb.SheetNames.find(sn => {
+        const u = sn.toUpperCase().replace('Ç','C');
+        return u.includes(fnMonth) && u.includes(fnYear);
+      });
+      if (hit) sheetName = hit;
+    }
     const sheet = wb.Sheets[sheetName];
     const grid = XLSX.utils.sheet_to_json(sheet, { header:1, raw:true, defval:null });
     const parsed = parseFitGrid(grid, sheetName, f.name);
