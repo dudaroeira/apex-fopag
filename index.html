@@ -702,6 +702,42 @@ function renderMais(){
 
 
 
+
+
+// ===== FIT matching (evita duplicação) =====
+function normNome(s){
+  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9 ]/g,'').replace(/\s+/g,' ').trim();
+}
+function matchFolha(fitName, folhaRows){
+  const target = normNome(fitName);
+  if (!target) return null;
+  // 1. Exato
+  for (const f of folhaRows){ if (normNome(f.nome) === target) return f; }
+  const tw = target.split(' ').filter(w=>w.length>1);
+  if (!tw.length) return null;
+  // 2. Todas as palavras do FIT contidas no nome da folha (palavras inteiras)
+  for (const f of folhaRows){
+    const fwords = normNome(f.nome).split(' ').filter(Boolean);
+    if (fwords.length && tw.every(w => fwords.includes(w))) return f;
+  }
+  // 3. Primeiro + último nome batem
+  if (tw.length >= 2){
+    const first = tw[0], last = tw[tw.length-1];
+    for (const f of folhaRows){
+      const fw = normNome(f.nome).split(' ').filter(Boolean);
+      if (fw.length >= 2 && fw[0] === first && fw[fw.length-1] === last) return f;
+    }
+  }
+  // 4. Maior overlap de palavras (heurístico, mínimo 2)
+  let best = null, bestScore = 0;
+  for (const f of folhaRows){
+    const fw = normNome(f.nome).split(' ').filter(Boolean);
+    const inter = tw.filter(w => fw.includes(w)).length;
+    if (inter >= 2 && inter > bestScore){ best = f; bestScore = inter; }
+  }
+  return best;
+}
+
 // ===== FIT (Ficha Interna de Tarefa) =====
 function filterFitByEnt(rows, ent){
   if (!ent) ent = ENTIDADE;
@@ -746,7 +782,7 @@ function renderFit(){
       </div>
     ` : `
       <div class="row3">
-        <div class="kpi"><div class="lbl">Beneficiados</div><div class="big">${fmt.num(k.head)}</div></div>
+        <div class="kpi"><div class="lbl">Beneficiados</div><div class="big">${fmt.num(k.head)}</div>${(()=>{const nc=rows.filter(r=>!r.matricula).length; return nc?`<div class="ext">${k.head-nc} na folha · ${nc} externos</div>`:`<div class="ext">todos na folha</div>`;})()}</div>
         <div class="kpi"><div class="lbl">Total pago</div><div class="big">${fmt.brlk(k.total)}</div><div class="ext">sem encargos</div></div>
         <div class="kpi"><div class="lbl">Média/pessoa</div><div class="big">${fmt.brl(k.med)}</div></div>
       </div>
@@ -763,15 +799,17 @@ function renderFit(){
       <input type="file" id="fitfile" accept=".xlsx,.xls" style="display:none" onchange="onUploadFit(event)">
 
       <div class="sect">RELAÇÃO DE FIT (${rows.length})</div>
-      <div class="card">${rows.slice().sort((a,b)=>(+b.total_pago||0)-(+a.total_pago||0)).map(r => `
+      <div class="card">${rows.slice().sort((a,b)=>(+b.total_pago||0)-(+a.total_pago||0)).map(r => {
+        const warn = !r.matricula ? '<span style="color:var(--mut2);font-size:11px" title="Sem vínculo com a folha do mês — pode ser admin/externo">○ </span>' : '';
+        return `
         <div class="list-it">
           <div class="lt">
-            <div class="n">${r.nome}</div>
-            <div class="s">${r.funcao||''}${r.equipe?' · '+r.equipe:''}${r.cod_obra?' · obra '+r.cod_obra:''}</div>
+            <div class="n">${warn}${r.nome_canonico || r.nome}</div>
+            <div class="s">${r.matricula?'mat. '+r.matricula+' · ':''}${r.funcao||''}${r.equipe?' · '+r.equipe:''}${r.cod_obra?' · obra '+r.cod_obra:''}</div>
           </div>
           <div class="r">${fmt.brl(+r.total_pago||0)}<small>pts ${fmt.brl(+r.valor_pontos||0)}</small></div>
-        </div>
-      `).join('')}</div>
+        </div>`;
+      }).join('')}</div>
     `}
   `;
   $('#main').innerHTML = html;
@@ -861,38 +899,96 @@ async function onUploadFit(ev){
     const sheet = wb.Sheets[sheetName];
     const grid = XLSX.utils.sheet_to_json(sheet, { header:1, raw:true, defval:null });
     const parsed = parseFitGrid(grid, sheetName, f.name);
-    // Apaga FIT do mes_ref antes de inserir (substituição completa)
+
+    // Garante que temos a folha do mês de PAGAMENTO carregada (pra matching)
+    const folhaPag = await fetchMes(parsed.mes_ref);
+
+    // Dedup dentro da planilha por nome normalizado:
+    //  - se aparecer 2 vezes o mesmo nome, soma os totais e usa o maior salário
+    const dedup = new Map();
+    for (const p of parsed.funcionarios){
+      const k = normNome(p.nome);
+      if (!k) continue;
+      const prev = dedup.get(k);
+      if (!prev){ dedup.set(k, { ...p, _dup: 0 }); continue; }
+      // Acumula
+      prev.valor_pontos = (prev.valor_pontos||0) + (p.valor_pontos||0);
+      prev.valor_variavel = (prev.valor_variavel||0) + (p.valor_variavel||0);
+      prev.desconto = (prev.desconto||0) + (p.desconto||0);
+      prev.desconto_mat = (prev.desconto_mat||0) + (p.desconto_mat||0);
+      prev.total_pago = (prev.total_pago||0) + (p.total_pago||0);
+      prev.salario = Math.max(prev.salario||0, p.salario||0);
+      prev._dup++;
+    }
+    const consolidados = Array.from(dedup.values());
+
+    // Matching contra a folha do mês de pagamento → grava matricula + nome_canonico
+    const naoCasados = [];
+    const rowsToInsert = [];
+    const usadasMatriculas = new Set();
+    for (const p of consolidados){
+      const m = matchFolha(p.nome, folhaPag);
+      let matricula = null, nomeCanonico = null;
+      if (m){
+        matricula = m.matricula;
+        nomeCanonico = m.nome;
+        // Se essa matricula já apareceu, evita inserir 2 vezes — soma no anterior
+        if (usadasMatriculas.has(matricula)){
+          const idx = rowsToInsert.findIndex(r => r.matricula === matricula);
+          if (idx >= 0){
+            const r = rowsToInsert[idx];
+            r.valor_pontos = (+r.valor_pontos||0) + (p.valor_pontos||0);
+            r.valor_variavel = (+r.valor_variavel||0) + (p.valor_variavel||0);
+            r.desconto = (+r.desconto||0) + (p.desconto||0);
+            r.desconto_mat = (+r.desconto_mat||0) + (p.desconto_mat||0);
+            r.total_pago = (+r.total_pago||0) + (p.total_pago||0);
+            continue;
+          }
+        }
+        usadasMatriculas.add(matricula);
+      } else {
+        naoCasados.push(p.nome);
+      }
+      rowsToInsert.push({
+        mes_ref: parsed.mes_ref,
+        mes_referencia: parsed.mes_referencia,
+        cod_obra: p.cod_obra, cod_obra_real: p.cod_obra_real,
+        nome: nomeCanonico || p.nome,
+        funcao: p.funcao, equipe: p.equipe,
+        salario: p.salario,
+        valor_pontos: p.valor_pontos,
+        valor_variavel: p.valor_variavel,
+        desconto: p.desconto,
+        desconto_mat: p.desconto_mat,
+        total_pago: p.total_pago,
+        observacoes: p.observacoes,
+        arquivo_origem: parsed.arquivo_origem,
+        matricula,
+        nome_canonico: nomeCanonico,
+      });
+    }
+
+    // Substituição completa do mês: delete + insert
     await sb.from('fit').delete().eq('mes_ref', parsed.mes_ref);
-    const rows = parsed.funcionarios.map(p => ({
-      mes_ref: parsed.mes_ref,
-      mes_referencia: parsed.mes_referencia,
-      cod_obra: p.cod_obra, cod_obra_real: p.cod_obra_real,
-      nome: p.nome, funcao: p.funcao, equipe: p.equipe,
-      salario: p.salario,
-      valor_pontos: p.valor_pontos,
-      valor_variavel: p.valor_variavel,
-      desconto: p.desconto,
-      desconto_mat: p.desconto_mat,
-      total_pago: p.total_pago,
-      observacoes: p.observacoes,
-      arquivo_origem: parsed.arquivo_origem,
-    }));
-    if (rows.length){
-      const res = await sb.from('fit').insert(rows);
+    if (rowsToInsert.length){
+      const res = await sb.from('fit').insert(rowsToInsert);
       if (res.error) throw new Error(res.error.message);
     }
-    // se mês de pagamento for diferente do MES atual, carrega lá
     if (parsed.mes_ref !== MES){
-      // Adiciona ao MESES se ainda não tinha
       if (!MESES.includes(parsed.mes_ref)){ MESES.push(parsed.mes_ref); MESES.sort().reverse(); fillMesSelect(); }
-      MES = parsed.mes_ref; fillMesSelect();
-      await loadMes(MES);
+      MES = parsed.mes_ref; fillMesSelect(); await loadMes(MES);
     }
-    // limpa cache do mes
     delete FIT_BY_MES[parsed.mes_ref];
     await loadFitMes(parsed.mes_ref);
     render();
-    alert(`FIT carregado: ${rows.length} pessoas · ${fmt.brl(rows.reduce((a,r)=>a+(+r.total_pago||0),0))} total\nPagamento em ${mesLabel(parsed.mes_ref)} (referência ${mesLabel(parsed.mes_referencia)})`);
+
+    let msg = `FIT carregado: ${rowsToInsert.length} pessoas · ${fmt.brl(rowsToInsert.reduce((a,r)=>a+(+r.total_pago||0),0))}\nPagamento em ${mesLabel(parsed.mes_ref)} (referente a ${mesLabel(parsed.mes_referencia)})`;
+    if (naoCasados.length){
+      msg += `\n\n${naoCasados.length} nome(s) sem vínculo com a folha do mês (admin, externo, ou grafia diferente):\n` + naoCasados.slice(0,10).map(n=>'• '+n).join('\n');
+      if (naoCasados.length > 10) msg += `\n… e mais ${naoCasados.length-10}`;
+      msg += '\n\nForam mantidos. Se notar duplicação, verifique a grafia no Excel.';
+    }
+    alert(msg);
   } catch (e){
     alert('Erro ao carregar FIT: ' + (e.message||e));
     console.error(e);
