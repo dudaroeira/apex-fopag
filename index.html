@@ -165,7 +165,7 @@ canvas{max-width:100%;}
     <button data-t="painel" class="on" onclick="go('painel')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Painel</button>
     <button data-t="evolucao" onclick="go('evolucao')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Evolução</button>
     <button data-t="equipe" onclick="go('equipe')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2 21c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 21c0-3 2-4.5 4.5-4.5"/></svg>Equipe</button>
-    <button data-t="mais" onclick="go('mais')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>Mais</button>
+    <button data-t="fit" onclick="go('fit')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4 2 7-6.5-4.5L5.5 20l2-7L2 9h7z"/></svg>FIT</button>
   </nav>
 </div>
 
@@ -204,7 +204,8 @@ let MESES = [];        // ['2026-05', '2026-04', ...]
 let MES = null;        // mês atualmente selecionado
 let ENTIDADE = 'APEX'; // 'APEX' | 'JR6' | cod_obra ('204OB', 'JAX28', 'OBRA99', 'REPARO')
 let WIN = 6;           // janela na tela Evolução (em meses, ou 999 para tudo)
-let DATA = { folha: [], empresas: [], obras: [], cargos: [], deps: [], rub: [], param: [] };
+let DATA = { folha: [], fit: [], empresas: [], obras: [], cargos: [], deps: [], rub: [], param: [] };
+let FIT_BY_MES = {}; // cache fit por mes_ref (pagamento)
 let HIST = {};         // cache: mes -> rows
 let CHARTS = {};
 
@@ -262,10 +263,14 @@ async function loadData(){
     DATA.deps = dep.data || [];
     DATA.param = par.data || [];
     const mes = await sb.from('folha_mensal').select('mes_ref');
-    MESES = [...new Set((mes.data||[]).map(r=>r.mes_ref))].sort().reverse();
+    const mesFit = await sb.from('fit').select('mes_ref');
+    const allMeses = new Set();
+    for (const r of (mes.data||[])) allMeses.add(r.mes_ref);
+    for (const r of (mesFit.data||[])) allMeses.add(r.mes_ref);
+    MESES = [...allMeses].sort().reverse();
     if (!MES) MES = MESES[0] || null;
     fillMesSelect();
-    if (MES) await loadMes(MES);
+    if (MES) { await loadMes(MES); await loadFitMes(MES); }
   } catch (e) { console.error(e); }
 }
 async function loadMes(m){
@@ -280,17 +285,23 @@ async function fetchMes(m){
   HIST[m] = r.data || [];
   return HIST[m];
 }
+async function loadFitMes(m){
+  if (FIT_BY_MES[m]){ DATA.fit = FIT_BY_MES[m]; return; }
+  const r = await sb.from('fit').select('*').eq('mes_ref', m);
+  FIT_BY_MES[m] = r.data || [];
+  DATA.fit = FIT_BY_MES[m];
+}
 function fillMesSelect(){
   const sel = $('#mesSel');
   sel.innerHTML = MESES.map(m => `<option value="${m}" ${m===MES?'selected':''}>${mesLabel(m)}</option>`).join('');
   $('#prev').disabled = MESES.indexOf(MES) >= MESES.length - 1;
   $('#next').disabled = MESES.indexOf(MES) <= 0;
 }
-async function selectMes(m){ MES = m; await loadMes(m); fillMesSelect(); render(); }
+async function selectMes(m){ MES = m; await loadMes(m); await loadFitMes(m); fillMesSelect(); render(); }
 async function step(d){
   const i = MESES.indexOf(MES); const j = i - d;
   if (j < 0 || j >= MESES.length) return;
-  MES = MESES[j]; await loadMes(MES); fillMesSelect(); render();
+  MES = MESES[j]; await loadMes(MES); await loadFitMes(MES); fillMesSelect(); render();
 }
 
 // ===== ENTIDADES =====
@@ -410,6 +421,7 @@ function render(){
   if (TAB === 'painel') renderPainel();
   else if (TAB === 'evolucao') renderEvolucao();
   else if (TAB === 'equipe') renderEquipe();
+  else if (TAB === 'fit') renderFit();
   else if (TAB === 'mais') renderMais();
 }
 function go(t){ TAB = t; render(); window.scrollTo(0,0); }
@@ -686,6 +698,231 @@ function renderMais(){
     <button class="bigbtn" onclick="doLogout()"><span class="ic">↩</span><span><b>Sair</b><small>Encerra a sessão</small></span></button>
     <div class="note">Apex Engenharia · v0.2</div>
   `;
+}
+
+
+
+// ===== FIT (Ficha Interna de Tarefa) =====
+function filterFitByEnt(rows, ent){
+  if (!ent) ent = ENTIDADE;
+  if (ent === 'APEX') return rows; // FIT é tudo APEX
+  if (ent === 'JR6') return []; // JR6 não tem FIT
+  // Obra: filtra por cod_obra (ou cod_obra_real?). Usar cod_obra (lotação contratual).
+  // Mapeamento: cod_obra na planilha pode ser '204', '099', '1PO', etc.
+  const obraMap = { '204OB':'204', 'JAX28':'1PO', 'OBRA99':'099', 'REPARO':'REPARO' };
+  const codFit = obraMap[ent] || ent;
+  return rows.filter(r => (r.cod_obra||'') === codFit);
+}
+
+function kpisFit(rows){
+  const head = rows.length;
+  const total = rows.reduce((a,r)=>a+(+r.total_pago||0), 0);
+  const pontos = rows.reduce((a,r)=>a+(+r.valor_pontos||0), 0);
+  const variavel = rows.reduce((a,r)=>a+(+r.valor_variavel||0), 0);
+  const desc = rows.reduce((a,r)=>a+(+r.desconto||0)+(+r.desconto_mat||0), 0);
+  const med = head ? total/head : 0;
+  return { head, total, pontos, variavel, desc, med };
+}
+
+function renderFit(){
+  const rows = filterFitByEnt(DATA.fit);
+  const k = kpisFit(rows);
+  // Mês de referência (mês anterior ao pagamento)
+  const mesReferencia = (()=>{
+    if (!rows.length) return null;
+    return rows[0].mes_referencia || null;
+  })();
+  const html = `
+    <h1>FIT · ${entLabel()}</h1>
+    <div class="subtitle">Pagamento em ${mesLabelLong(MES)}${mesReferencia?` · referente a ${mesLabel(mesReferencia)}`:''}</div>
+
+    ${rows.length === 0 ? `
+      <div class="card" style="text-align:center;padding:30px 16px">
+        <div style="font-size:36px">📋</div>
+        <div style="font-weight:600;margin:8px 0">Sem FIT carregado para esse mês</div>
+        <div style="color:var(--mut);font-size:13px;line-height:1.5">A planilha FIT é mensal. Cada planilha refere-se ao mês anterior ao pagamento.<br>Ex.: planilha "ABR-2026" = pagamento em maio/2026.</div>
+        ${IS_MANAGER ? `<button class="btn-p" style="margin-top:14px;padding:12px 22px;border:none;border-radius:11px;font-weight:600;cursor:pointer" onclick="document.getElementById('fitfile').click()">Carregar planilha FIT</button>` : ''}
+        <input type="file" id="fitfile" accept=".xlsx,.xls" style="display:none" onchange="onUploadFit(event)">
+      </div>
+    ` : `
+      <div class="row3">
+        <div class="kpi"><div class="lbl">Beneficiados</div><div class="big">${fmt.num(k.head)}</div></div>
+        <div class="kpi"><div class="lbl">Total pago</div><div class="big">${fmt.brlk(k.total)}</div><div class="ext">sem encargos</div></div>
+        <div class="kpi"><div class="lbl">Média/pessoa</div><div class="big">${fmt.brl(k.med)}</div></div>
+      </div>
+      <div class="row3">
+        <div class="kpi"><div class="lbl">Pontos</div><div class="big sm">${fmt.brlk(k.pontos)}</div><div class="ext">premiação</div></div>
+        <div class="kpi"><div class="lbl">Variável</div><div class="big sm">${fmt.brlk(k.variavel)}</div><div class="ext">DSR, complemento</div></div>
+        <div class="kpi"><div class="lbl">Descontos</div><div class="big sm">${fmt.brlk(k.desc)}</div><div class="ext">material/serviço</div></div>
+      </div>
+
+      <div class="action-row">
+        ${IS_MANAGER ? `<button onclick="document.getElementById('fitfile').click()" style="margin-right:8px">⬆ Substituir planilha</button>` : ''}
+        <button onclick="exportarPDFFit()">📄 PDF</button>
+      </div>
+      <input type="file" id="fitfile" accept=".xlsx,.xls" style="display:none" onchange="onUploadFit(event)">
+
+      <div class="sect">RELAÇÃO DE FIT (${rows.length})</div>
+      <div class="card">${rows.slice().sort((a,b)=>(+b.total_pago||0)-(+a.total_pago||0)).map(r => `
+        <div class="list-it">
+          <div class="lt">
+            <div class="n">${r.nome}</div>
+            <div class="s">${r.funcao||''}${r.equipe?' · '+r.equipe:''}${r.cod_obra?' · obra '+r.cod_obra:''}</div>
+          </div>
+          <div class="r">${fmt.brl(+r.total_pago||0)}<small>pts ${fmt.brl(+r.valor_pontos||0)}</small></div>
+        </div>
+      `).join('')}</div>
+    `}
+  `;
+  $('#main').innerHTML = html;
+}
+
+const FIT_MES_ABREV = {
+  JAN:1, FEV:2, MAR:3, ABR:4, MAI:5, JUN:6, JUL:7, AGO:8, SET:9, OUT:10, NOV:11, DEZ:12,
+  JANEIRO:1, FEVEREIRO:2, MARCO:3, ABRIL:4, MAIO:5, JUNHO:6, JULHO:7, AGOSTO:8, SETEMBRO:9, OUTUBRO:10, NOVEMBRO:11, DEZEMBRO:12,
+};
+function parseFitGrid(grid, sheetName, fileName){
+  // sheetName tipo "ABR-2026" → mês_referencia = 2026-04, mes_pagamento = 2026-05
+  const m = String(sheetName||'').toUpperCase().match(/([A-Z]+)[-_/ ]*(\d{4})/);
+  if (!m) throw new Error("Não consegui detectar mês na aba (esperado tipo 'ABR-2026').");
+  const monthName = String(m[1]).replace('Ç','C');
+  const monthNum = FIT_MES_ABREV[monthName];
+  if (!monthNum) throw new Error("Mês desconhecido: " + monthName);
+  const year = parseInt(m[2], 10);
+  const mesReferencia = year + '-' + String(monthNum).padStart(2,'0');
+  // Mês de pagamento = +1 mês
+  const pgMonth = monthNum + 1;
+  const pgYear = pgMonth > 12 ? year+1 : year;
+  const pgM = pgMonth > 12 ? 1 : pgMonth;
+  const mesPag = pgYear + '-' + String(pgM).padStart(2,'0');
+
+  // Achar linha de header (col 4 = NOMES). Geralmente r3.
+  let headerRow = -1;
+  for (let r=0;r<Math.min(grid.length,10);r++){
+    const row = grid[r]||[];
+    if (row[3] && String(row[3]).toUpperCase().includes('NOME')) { headerRow = r; break; }
+  }
+  if (headerRow < 0) throw new Error("Cabeçalho não encontrado (col NOMES).");
+
+  // Colunas: c1=A...c27=AA → JS index = c-1
+  // Mapeamento por nome de header (mais robusto)
+  const headers = (grid[headerRow]||[]).map(x => String(x||'').toUpperCase().trim());
+  const idx = label => headers.findIndex(h => h.includes(label));
+  const iObra      = idx('OBRA') >= 0 ? headers.findIndex(h=>h==='OBRA') : -1;
+  const iLocacao   = headers.findIndex(h=>h.includes('LOCAÇÃO') || h.includes('LOCACAO'));
+  const iNome      = headers.findIndex(h=>h.includes('NOME'));
+  const iFuncao    = headers.findIndex(h=>h.includes('FUNCAO') || h.includes('FUNÇÃO'));
+  const iEquipe    = headers.findIndex(h=>h==='EQUIPE');
+  const iSalario   = headers.findIndex(h=>h.includes('SALARIO') || h.includes('SALÁRIO'));
+  // Há duas colunas "TOTAL". A primeira (pontos*5) e a segunda (final).
+  const totaisIdx = headers.map((h,i)=>h==='TOTAL'?i:-1).filter(x=>x>=0);
+  const iPontosVal = totaisIdx[0] !== undefined ? totaisIdx[0] : -1; // primeiro TOTAL = valor de pontos
+  const iValor     = headers.findIndex(h=>h==='VALOR');
+  const iDesc      = headers.findIndex(h=>h==='DESCONTO');
+  const iDescMat   = headers.findIndex(h=>h.includes('MATERIAL') || h.includes('SERVIÇO') || h.includes('SERVICO'));
+  const iTotal     = totaisIdx[totaisIdx.length-1]; // último TOTAL = total pago
+  const iObs       = headers.findIndex(h=>h.includes('OBSERV'));
+
+  const funcionarios = [];
+  for (let r = headerRow+1; r < grid.length; r++){
+    const row = grid[r] || [];
+    const nome = iNome>=0 ? String(row[iNome]||'').trim() : '';
+    if (!nome) continue;
+    const total_pago = parseFitNum(row[iTotal]);
+    if (!total_pago) continue; // pula linhas sem total
+    funcionarios.push({
+      cod_obra: iObra>=0 ? String(row[iObra]||'').trim() : null,
+      cod_obra_real: iLocacao>=0 ? String(row[iLocacao]||'').trim() : null,
+      nome,
+      funcao: iFuncao>=0 ? String(row[iFuncao]||'').trim() : null,
+      equipe: iEquipe>=0 ? String(row[iEquipe]||'').trim() : null,
+      salario: parseFitNum(row[iSalario]),
+      valor_pontos: parseFitNum(row[iPontosVal]),
+      valor_variavel: parseFitNum(row[iValor]),
+      desconto: parseFitNum(row[iDesc]),
+      desconto_mat: parseFitNum(row[iDescMat]),
+      total_pago,
+      observacoes: iObs>=0 ? String(row[iObs]||'').trim() || null : null,
+    });
+  }
+  return { mes_ref: mesPag, mes_referencia: mesReferencia, funcionarios, arquivo_origem: fileName };
+}
+function parseFitNum(v){ if (v==null || v==='') return null; if (typeof v==='number') return v; const s=String(v).replace(/\./g,'').replace(',','.').replace(/[^\d.\-]/g,''); const n=parseFloat(s); return isNaN(n)?null:n; }
+
+async function onUploadFit(ev){
+  if (!IS_MANAGER) return;
+  const files = ev.target.files;
+  if (!files || !files.length) return;
+  const f = files[0];
+  try {
+    const buf = await f.arrayBuffer();
+    const wb = XLSX.read(buf, { type:'array', cellDates:false });
+    const sheetName = wb.SheetNames[0];
+    const sheet = wb.Sheets[sheetName];
+    const grid = XLSX.utils.sheet_to_json(sheet, { header:1, raw:true, defval:null });
+    const parsed = parseFitGrid(grid, sheetName, f.name);
+    // Apaga FIT do mes_ref antes de inserir (substituição completa)
+    await sb.from('fit').delete().eq('mes_ref', parsed.mes_ref);
+    const rows = parsed.funcionarios.map(p => ({
+      mes_ref: parsed.mes_ref,
+      mes_referencia: parsed.mes_referencia,
+      cod_obra: p.cod_obra, cod_obra_real: p.cod_obra_real,
+      nome: p.nome, funcao: p.funcao, equipe: p.equipe,
+      salario: p.salario,
+      valor_pontos: p.valor_pontos,
+      valor_variavel: p.valor_variavel,
+      desconto: p.desconto,
+      desconto_mat: p.desconto_mat,
+      total_pago: p.total_pago,
+      observacoes: p.observacoes,
+      arquivo_origem: parsed.arquivo_origem,
+    }));
+    if (rows.length){
+      const res = await sb.from('fit').insert(rows);
+      if (res.error) throw new Error(res.error.message);
+    }
+    // se mês de pagamento for diferente do MES atual, carrega lá
+    if (parsed.mes_ref !== MES){
+      // Adiciona ao MESES se ainda não tinha
+      if (!MESES.includes(parsed.mes_ref)){ MESES.push(parsed.mes_ref); MESES.sort().reverse(); fillMesSelect(); }
+      MES = parsed.mes_ref; fillMesSelect();
+      await loadMes(MES);
+    }
+    // limpa cache do mes
+    delete FIT_BY_MES[parsed.mes_ref];
+    await loadFitMes(parsed.mes_ref);
+    render();
+    alert(`FIT carregado: ${rows.length} pessoas · ${fmt.brl(rows.reduce((a,r)=>a+(+r.total_pago||0),0))} total\nPagamento em ${mesLabel(parsed.mes_ref)} (referência ${mesLabel(parsed.mes_referencia)})`);
+  } catch (e){
+    alert('Erro ao carregar FIT: ' + (e.message||e));
+    console.error(e);
+  }
+  ev.target.value = '';
+}
+
+function exportarPDFFit(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const rows = filterFitByEnt(DATA.fit).slice().sort((a,b)=>(+b.total_pago||0)-(+a.total_pago||0));
+  pdfHeader(doc, 'FIT · ' + entLabel(), 'Pagamento em ' + mesLabelLong(MES));
+  const k = kpisFit(rows);
+  doc.setFontSize(10);
+  doc.text(`${rows.length} beneficiados · Total: ${fmt.brl(k.total)} (sem encargos)`, 14, 28);
+  doc.autoTable({
+    startY: 33,
+    head: [['Nome','Função','Obra','Pontos','Variável','Total']],
+    body: rows.map(r => [
+      r.nome,
+      r.funcao || '',
+      r.cod_obra || '',
+      fmt.brl(+r.valor_pontos||0),
+      fmt.brl(+r.valor_variavel||0),
+      fmt.brl(+r.total_pago||0),
+    ]),
+    styles:{ fontSize:8 }, headStyles:{ fillColor:[31,56,100] },
+    columnStyles: { 3:{halign:'right'}, 4:{halign:'right'}, 5:{halign:'right'} },
+  });
+  doc.save(`apex-rh-fit-${ENTIDADE}-${MES}.pdf`);
 }
 
 // ===== MENU / MODAIS =====
